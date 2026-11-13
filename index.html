@@ -283,6 +283,15 @@
       margin-right: 8px;
       vertical-align: middle;
     }
+    .cor-poligonal {
+      display: inline-block;
+      width: 20px;
+      height: 12px;
+      border: 2px dashed #325565;
+      background: transparent;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
 
     .faixa {
       display: grid;
@@ -407,9 +416,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
-    // =========================================================================
-    // COLE AQUI A URL DO SEU GOOGLE APPS SCRIPT (TERMINADA EM /exec)
-    // =========================================================================
     const API_GOOGLE_URL = "https://script.google.com/macros/s/AKfycbzrI1h85NKmhV25gFQHGOzPfAPa4scLA-w6dVKiqvK5IBjx05FlvMX3eJvcQ9wcx8uH/exec";
 
     const COL_NOME = "name";
@@ -447,20 +453,84 @@
     let camadaAtiva = camadasBase.cinza;
     camadaAtiva.addTo(map);
 
+    let mascaraPoligonalLayer = null;
+
     function trocarMapaBase() {
       const escolha = document.getElementById('seletor-mapa-base').value;
       if (camadaAtiva) map.removeLayer(camadaAtiva);
       camadaAtiva = camadasBase[escolha] || camadasBase.cinza;
       camadaAtiva.addTo(map);
+      if (mascaraPoligonalLayer) mascaraPoligonalLayer.bringToFront();
       if (geojsonLayer) geojsonLayer.bringToFront();
     }
+
+    // Carrega poligonal_centro.geojson: centro totalmente transparente, entorno branco/cinza leve e borda na legenda
+    fetch('poligonal_centro.geojson')
+      .then(function(res) {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then(function(polyData) {
+        if (!polyData || !polyData.features || polyData.features.length === 0) return;
+
+        const anelMundo = [
+          [-180, -90],
+          [180, -90],
+          [180, 90],
+          [-180, 90],
+          [-180, -90]
+        ];
+
+        const aneisRecorte = [anelMundo];
+
+        polyData.features.forEach(function(feat) {
+          if (!feat.geometry) return;
+          if (feat.geometry.type === 'Polygon') {
+            aneisRecorte.push(feat.geometry.coordinates[0]);
+          } else if (feat.geometry.type === 'MultiPolygon') {
+            feat.geometry.coordinates.forEach(function(poly) {
+              aneisRecorte.push(poly[0]);
+            });
+          }
+        });
+
+        const geojsonInvertido = {
+          type: "Feature",
+          geometry: {
+            type: "Polygon",
+            coordinates: aneisRecorte
+          }
+        };
+
+        mascaraPoligonalLayer = L.geoJSON(geojsonInvertido, {
+          interactive: false,
+          style: {
+            color: COR_PETROLEO,
+            weight: 2.5,
+            dashArray: '6, 4',
+            opacity: 0.9,
+            fillColor: '#FFFFFF',
+            fillOpacity: 0.62
+          }
+        }).addTo(map);
+
+        const limitesCentro = L.geoJSON(polyData).getBounds();
+        if (limitesCentro.isValid()) {
+          map.fitBounds(limitesCentro, { padding: [15, 15] });
+        }
+
+        if (geojsonLayer) geojsonLayer.bringToFront();
+      })
+      .catch(function(err) {
+        console.warn("Poligonal não carregada:", err);
+      });
 
     let modoAtual = 'pintura';
     let dadosOriginais = null;
     let geojsonLayer = null;
-    let pintadas = new Map(); // id -> 1 ou 2
-    let roteiro = new Set();  // ids no roteiro
-    let datasRegistro = new Map(); // id -> "dd/mm/yyyy" (data da pintura ou inclusão no roteiro)
+    let pintadas = new Map();
+    let roteiro = new Set();
+    let datasRegistro = new Map();
     let enviandoNuvem = false;
 
     function dataAtualBR() {
@@ -532,7 +602,6 @@
       } catch (e) {}
     }
 
-    // Gera a Base de Dados Consolidada com todas as vias, metas, percentuais e datas
     function gerarBaseConsolidada() {
       if (!dadosOriginais) return [];
       const lista = [];
@@ -1060,7 +1129,6 @@
       window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
     }
 
-    // Exporta Base de Dados Completa para Excel / Power BI (15 colunas analíticas)
     function exportarCSV() {
       if (!dadosOriginais) return;
       const base = gerarBaseConsolidada();
@@ -1168,7 +1236,8 @@
         '<div><span class="cor-tracejada"></span>Pintada: Só 1 Lado (2º Clique)</div>' +
         '<div><span class="cor-rota-leg"></span>No Roteiro do Dia</div>' +
         '<div><span class="cor" style="background:#00A0DC"></span>Vertical (Falta Pintar)</div>' +
-        '<div><span class="cor" style="background:#F15A22"></span>Horizontal (Falta Pintar)</div>';
+        '<div><span class="cor" style="background:#F15A22"></span>Horizontal (Falta Pintar)</div>' +
+        '<div style="margin-top:4px; border-top:1px solid #98AAB2; padding-top:4px;"><span class="cor-poligonal"></span>Poligonal Centro (Área)</div>';
       return div;
     };
     legenda.addTo(map);
