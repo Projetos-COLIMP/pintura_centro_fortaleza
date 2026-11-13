@@ -43,6 +43,7 @@
       overflow: hidden;
     }
 
+    /* Cabeçalho Institucional COLIMP */
     .topo {
       display: flex;
       align-items: center;
@@ -98,6 +99,20 @@
     }
     .btn-modo.ativo-pintura { background: var(--verde); }
     .btn-modo.ativo-rota { background: var(--laranja); }
+    .btn-manual-topo {
+      height: 100%;
+      padding: 0 var(--e2);
+      border: 0;
+      border-left: 2px solid var(--branco);
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--azul);
+      color: var(--branco);
+    }
+    .btn-manual-topo:hover {
+      background: var(--laranja);
+    }
 
     #painel {
       background: var(--creme);
@@ -241,7 +256,7 @@
       filter: grayscale(100%) contrast(85%) brightness(108%);
       opacity: 0.65;
     }
-    
+
     .legenda {
       background: var(--branco);
       padding: var(--e1) 12px;
@@ -293,6 +308,153 @@
       vertical-align: middle;
     }
 
+    /* =====================================================================
+       JANELA FLUTUANTE ARRASTÁVEL DO MANUAL (PADRÃO COLIMP)
+       ===================================================================== */
+    #janela-manual {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      width: 440px;
+      max-width: 94vw;
+      max-height: 82vh;
+      background: var(--creme);
+      border: 3px solid var(--petroleo);
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+    }
+
+    .manual-barra-arrastar {
+      background: var(--petroleo);
+      color: var(--branco);
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: move;
+      user-select: none;
+      touch-action: none;
+    }
+    .manual-barra-esquerda {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+    .manual-bloco-cor {
+      width: 40px;
+      height: 100%;
+      background: var(--laranja);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .manual-titulo-txt {
+      margin-left: 10px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .manual-btn-fechar {
+      height: 100%;
+      padding: 0 14px;
+      background: var(--laranja);
+      color: var(--branco);
+      border: 0;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .manual-btn-fechar:hover {
+      background: var(--grafite);
+    }
+
+    .manual-abas {
+      display: flex;
+      background: var(--petroleo);
+      border-top: 1px solid var(--petroleo-50);
+    }
+    .manual-aba {
+      flex: 1;
+      padding: 8px 4px;
+      border: 0;
+      border-right: 1px solid var(--petroleo-50);
+      background: var(--petroleo);
+      color: var(--branco);
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .manual-aba.ativa {
+      background: var(--verde);
+    }
+
+    .manual-corpo {
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .manual-card {
+      background: var(--branco);
+      padding: 10px 12px;
+      border-left: 6px solid var(--cor-card, var(--petroleo));
+    }
+    .manual-card h4 {
+      color: var(--petroleo);
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    /* Diagramas visuais com setas */
+    .diagrama-fluxo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      margin-top: 8px;
+      background: var(--creme);
+      padding: 8px;
+    }
+    .passo-box {
+      flex: 1;
+      background: var(--branco);
+      padding: 6px;
+      text-align: center;
+      border-top: 4px solid var(--cor-borda, var(--petroleo));
+      font-size: 11px;
+    }
+    .passo-box strong {
+      display: block;
+      color: var(--petroleo);
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+    .seta-fluxo {
+      font-weight: bold;
+      font-size: 18px;
+      color: var(--laranja);
+    }
+
+    .linha-exemplo-mapa {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 6px 0;
+      padding: 6px 8px;
+      background: var(--creme);
+    }
+    .amostra-traco {
+      width: 44px;
+      height: 6px;
+      flex-shrink: 0;
+    }
+
     .faixa {
       display: grid;
       grid-template-columns: 2fr 5fr 1fr 3fr 6fr;
@@ -306,7 +468,7 @@
     @media (max-width: 900px) {
       .topo__titulo { font-size: 13px; margin-left: var(--e1); }
       .status-nuvem { font-size: 10px; padding: 2px 6px; margin-left: 4px; }
-      .btn-modo { padding: 0 8px; font-size: 11px; }
+      .btn-modo, .btn-manual-topo { padding: 0 8px; font-size: 11px; }
       #painel { padding: 6px var(--e1); gap: 5px; }
       .kpi { min-width: 78px; padding: 4px 6px; }
       .kpi strong { font-size: 14px; }
@@ -329,6 +491,9 @@
       </button>
       <button id="modo-rota" class="btn-modo" onclick="alterarModo('rota')">
         2. MONTAR ROTEIRO
+      </button>
+      <button class="btn-manual-topo" onclick="alternarManual()" title="Abrir guia rápido visual">
+        ? MANUAL
       </button>
     </div>
   </header>
@@ -412,6 +577,123 @@
 
   <main id="map"></main>
 
+  <!-- =======================================================================
+       JANELA FLUTUANTE ARRASTÁVEL DO MANUAL PRÁTICO
+       ======================================================================= -->
+  <aside id="janela-manual" role="dialog" aria-label="Manual Rápido do Sistema">
+    <div id="cabecalho-arrastar" class="manual-barra-arrastar" title="Clique e arraste para mover esta janela">
+      <div class="manual-barra-esquerda">
+        <span class="manual-bloco-cor">?</span>
+        <span class="manual-titulo-txt">GUIA RÁPIDO (ARRASTE PARA MOVER)</span>
+      </div>
+      <button class="manual-btn-fechar" onclick="alternarManual()">X</button>
+    </div>
+
+    <div class="manual-abas">
+      <button id="aba-btn-campo" class="manual-aba ativa" onclick="trocarAbaManual('campo')">1. Marcar Pintura</button>
+      <button id="aba-btn-roteiro" class="manual-aba" onclick="trocarAbaManual('roteiro')">2. Roteiro Garis</button>
+      <button id="aba-btn-gestao" class="manual-aba" onclick="trocarAbaManual('gestao')">3. Excel e Online</button>
+    </div>
+
+    <div class="manual-corpo">
+      <!-- ABA 1: CAMPO -->
+      <div id="conteudo-aba-campo" style="display:flex; flex-direction:column; gap:10px;">
+        <div class="manual-card" style="--cor-card: var(--verde)">
+          <h4>Como marcar uma rua pintada (Ciclo de Cliques)</h4>
+          <p>Certifique-se de que o botão verde <strong>1. MARCAR PINTURA</strong> está ativo no topo e toque em cima da linha da rua:</p>
+          <div class="diagrama-fluxo">
+            <div class="passo-box" style="--cor-borda: var(--verde)">
+              <strong>1º CLIQUE</strong>
+              Pintou os 2 lados da rua (100%)
+            </div>
+            <span class="seta-fluxo">➔</span>
+            <div class="passo-box" style="--cor-borda: var(--verde-50)">
+              <strong>2º CLIQUE</strong>
+              Pintou só 1 lado (50%)
+            </div>
+            <span class="seta-fluxo">➔</span>
+            <div class="passo-box" style="--cor-borda: var(--laranja)">
+              <strong>3º CLIQUE</strong>
+              Desmarca (volta a faltar pintar)
+            </div>
+          </div>
+        </div>
+
+        <div class="manual-card" style="--cor-card: var(--petroleo)">
+          <h4>O que significa cada cor no mapa</h4>
+          <div class="linha-exemplo-mapa">
+            <span class="amostra-traco" style="background:#009889"></span>
+            <span><strong>Verde Sólido:</strong> Rua 100% concluída (2 lados pintados).</span>
+          </div>
+          <div class="linha-exemplo-mapa">
+            <span class="amostra-traco" style="border-top: 6px dashed #009889"></span>
+            <span><strong>Verde Tracejado:</strong> Só 1 lado foi pintado (falta o outro lado).</span>
+          </div>
+          <div class="linha-exemplo-mapa">
+            <span class="amostra-traco" style="background:#00A0DC"></span>
+            <span><strong>Azul:</strong> Rua vertical que ainda falta pintar.</span>
+          </div>
+          <div class="linha-exemplo-mapa">
+            <span class="amostra-traco" style="background:#F15A22"></span>
+            <span><strong>Laranja:</strong> Rua horizontal que ainda falta pintar.</span>
+          </div>
+        </div>
+
+        <div class="manual-card" style="--cor-card: var(--azul)">
+          <h4>Dica de Visualização</h4>
+          <p>Use a caixa <strong>Fundo: Mapa Cinza Limpo</strong> para alternar entre o mapa cinza, o mapa colorido de ruas ou a <strong>Vista de Satélite</strong> (foto real).</p>
+        </div>
+      </div>
+
+      <!-- ABA 2: ROTEIRO GARIS -->
+      <div id="conteudo-aba-roteiro" style="display:none; flex-direction:column; gap:10px;">
+        <div class="manual-card" style="--cor-card: var(--laranja)">
+          <h4>Passo a passo para montar o roteiro da equipe</h4>
+          <div class="diagrama-fluxo">
+            <div class="passo-box" style="--cor-borda: var(--laranja)">
+              <strong>PASSO 1</strong>
+              Clique em <b>2. MONTAR ROTEIRO</b> no topo
+            </div>
+            <span class="seta-fluxo">➔</span>
+            <div class="passo-box" style="--cor-borda: var(--grafite)">
+              <strong>PASSO 2</strong>
+              Toque nas ruas do dia (ficam tracejadas cinza)
+            </div>
+            <span class="seta-fluxo">➔</span>
+            <div class="passo-box" style="--cor-borda: var(--verde)">
+              <strong>PASSO 3</strong>
+              Clique em <b>Enviar p/ Equipe</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="manual-card" style="--cor-card: var(--azul)">
+          <h4>Trajeto automático no Google Maps</h4>
+          <p>O sistema organiza as ruas na ordem mais próxima para evitar caminhadas desnecessárias e cria um link do Google Maps mostrando o <strong>ponto exato onde a rua começa e onde termina</strong>.</p>
+        </div>
+
+        <div class="manual-card" style="--cor-card: var(--verde)">
+          <h4>Fim do expediente (Concluir Roteiro)</h4>
+          <p>Quando a equipe terminar o roteiro enviado, clique no botão laranja <strong>Confirmar Roteiro Pintado</strong>. Todas as ruas do roteiro ficam verdes automaticamente.</p>
+        </div>
+      </div>
+
+      <!-- ABA 3: EXCEL E ONLINE -->
+      <div id="conteudo-aba-gestao" style="display:none; flex-direction:column; gap:10px;">
+        <div class="manual-card" style="--cor-card: var(--verde)">
+          <h4>Acompanhamento Online entre Gestores</h4>
+          <p>Tudo o que é marcado no celular em campo é salvo automaticamente na nuvem. Quem está no escritório vê o mapa atualizar sozinho a cada 25 segundos (ou clicando em <strong>Atualizar Agora</strong>).</p>
+        </div>
+
+        <div class="manual-card" style="--cor-card: var(--petroleo)">
+          <h4>Relatórios e Power BI</h4>
+          <p>• <strong>Baixar Base Excel:</strong> Gera planilha completa com todas as ruas, datas de registro, percentual concluído, metros pintados e metros que ainda faltam.</p>
+          <p style="margin-top:4px;">• <strong>Arquivo QGIS:</strong> Baixa o mapa atualizado para abrir direto no QGIS.</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
   <footer class="faixa" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -429,6 +711,71 @@
     const COR_PETROLEO = "#325565";
     const COR_GRAFITE = "#414042";
 
+    // =========================================================================
+    // CONTROLE DA JANELA FLUTUANTE ARRASTÁVEL DO MANUAL
+    // =========================================================================
+    function alternarManual() {
+      const janela = document.getElementById('janela-manual');
+      janela.style.display = (janela.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    function trocarAbaManual(aba) {
+      ['campo', 'roteiro', 'gestao'].forEach(function(nome) {
+        document.getElementById('conteudo-aba-' + nome).style.display = (nome === aba) ? 'flex' : 'none';
+        document.getElementById('aba-btn-' + nome).className = 'manual-aba' + (nome === aba ? ' ativa' : '');
+      });
+    }
+
+    (function tornarManualArrastavel() {
+      const janela = document.getElementById('janela-manual');
+      const barra = document.getElementById('cabecalho-arrastar');
+      let arrastando = false;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      function iniciarArrasto(clientX, clientY) {
+        arrastando = true;
+        const rect = janela.getBoundingClientRect();
+        janela.style.right = 'auto';
+        janela.style.left = rect.left + 'px';
+        janela.style.top = rect.top + 'px';
+        offsetX = clientX - rect.left;
+        offsetY = clientY - rect.top;
+      }
+
+      function moverArrasto(clientX, clientY) {
+        if (!arrastando) return;
+        let novoX = clientX - offsetX;
+        let novoY = clientY - offsetY;
+        novoX = Math.max(0, Math.min(window.innerWidth - 60, novoX));
+        novoY = Math.max(0, Math.min(window.innerHeight - 40, novoY));
+        janela.style.left = novoX + 'px';
+        janela.style.top = novoY + 'px';
+      }
+
+      barra.addEventListener('mousedown', function(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        iniciarArrasto(e.clientX, e.clientY);
+      });
+      document.addEventListener('mousemove', function(e) { moverArrasto(e.clientX, e.clientY); });
+      document.addEventListener('mouseup', function() { arrastando = false; });
+
+      barra.addEventListener('touchstart', function(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        const toque = e.touches[0];
+        iniciarArrasto(toque.clientX, toque.clientY);
+      }, { passive: true });
+      document.addEventListener('touchmove', function(e) {
+        if (!arrastando) return;
+        const toque = e.touches[0];
+        moverArrasto(toque.clientX, toque.clientY);
+      }, { passive: true });
+      document.addEventListener('touchend', function() { arrastando = false; });
+    })();
+
+    // =========================================================================
+    // MAPA E CAMADAS
+    // =========================================================================
     const map = L.map('map').setView([-3.7275, -38.5275], 15);
 
     const camadasBase = {
@@ -464,14 +811,11 @@
       if (geojsonLayer) geojsonLayer.bringToFront();
     }
 
-    // Converte coordenadas UTM Zona 24S (SIRGAS 2000 / EPSG:31984) para WGS 84 (Lat/Lng) caso o arquivo não tenha sido reprojetado no QGIS
     function converterParaWGS84SeUTM(coord) {
       const x = coord[0];
       const y = coord[1];
-      // Se já estiver em graus (-180 a 180), devolve direto
       if (Math.abs(x) <= 180 && Math.abs(y) <= 90) return [x, y];
 
-      // Conversão exata UTM Zona 24 Sul -> Latitude/Longitude
       const a = 6378137.0;
       const f = 1 / 298.257223563;
       const k0 = 0.9996;
@@ -503,7 +847,7 @@
         (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * (e2 / (1 - e2)) - 3 * C1 * C1) * Math.pow(D, 6) / 720
       );
 
-      const lon0 = -39 * Math.PI / 180; // Meridiano central Zona 24 (-39°)
+      const lon0 = -39 * Math.PI / 180;
       const lonRad = lon0 + (
         D -
         (1 + 2 * T1 + C1) * Math.pow(D, 3) / 6 +
@@ -513,7 +857,6 @@
       return [lonRad * 180 / Math.PI, latRad * 180 / Math.PI];
     }
 
-    // Carrega poligonal_centro.geojson com correção automática de projeção
     fetch('poligonal_centro.geojson')
       .then(function(res) {
         if (!res.ok) return null;
@@ -568,7 +911,6 @@
           }
         }).addTo(map);
 
-        // Enquadra exatamente na poligonal convertida (apenas se estiver dentro de Fortaleza)
         if (aneisParaEnquadrar.length > 0) {
           const limitesCentro = L.geoJSON({
             type: "Feature",
