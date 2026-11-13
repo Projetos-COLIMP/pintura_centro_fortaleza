@@ -464,7 +464,56 @@
       if (geojsonLayer) geojsonLayer.bringToFront();
     }
 
-    // Carrega poligonal_centro.geojson: centro totalmente transparente, entorno branco/cinza leve e borda na legenda
+    // Converte coordenadas UTM Zona 24S (SIRGAS 2000 / EPSG:31984) para WGS 84 (Lat/Lng) caso o arquivo não tenha sido reprojetado no QGIS
+    function converterParaWGS84SeUTM(coord) {
+      const x = coord[0];
+      const y = coord[1];
+      // Se já estiver em graus (-180 a 180), devolve direto
+      if (Math.abs(x) <= 180 && Math.abs(y) <= 90) return [x, y];
+
+      // Conversão exata UTM Zona 24 Sul -> Latitude/Longitude
+      const a = 6378137.0;
+      const f = 1 / 298.257223563;
+      const k0 = 0.9996;
+      const e2 = 2 * f - f * f;
+      const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+
+      const xAdj = x - 500000.0;
+      const yAdj = y - 10000000.0;
+      const M = yAdj / k0;
+      const mu = M / (a * (1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * Math.pow(e2, 3) / 256));
+
+      const phi1 = mu +
+        (3 * e1 / 2 - 27 * Math.pow(e1, 3) / 32) * Math.sin(2 * mu) +
+        (21 * e1 * e1 / 16 - 55 * Math.pow(e1, 4) / 32) * Math.sin(4 * mu) +
+        (151 * Math.pow(e1, 3) / 96) * Math.sin(6 * mu);
+
+      const sinPhi1 = Math.sin(phi1);
+      const cosPhi1 = Math.cos(phi1);
+      const tanPhi1 = Math.tan(phi1);
+      const N1 = a / Math.sqrt(1 - e2 * sinPhi1 * sinPhi1);
+      const T1 = tanPhi1 * tanPhi1;
+      const C1 = (e2 / (1 - e2)) * cosPhi1 * cosPhi1;
+      const R1 = a * (1 - e2) / Math.pow(1 - e2 * sinPhi1 * sinPhi1, 1.5);
+      const D = xAdj / (N1 * k0);
+
+      const latRad = phi1 - (N1 * tanPhi1 / R1) * (
+        D * D / 2 -
+        (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * (e2 / (1 - e2))) * Math.pow(D, 4) / 24 +
+        (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * (e2 / (1 - e2)) - 3 * C1 * C1) * Math.pow(D, 6) / 720
+      );
+
+      const lon0 = -39 * Math.PI / 180; // Meridiano central Zona 24 (-39°)
+      const lonRad = lon0 + (
+        D -
+        (1 + 2 * T1 + C1) * Math.pow(D, 3) / 6 +
+        (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * (e2 / (1 - e2)) + 24 * T1 * T1) * Math.pow(D, 5) / 120
+      ) / cosPhi1;
+
+      return [lonRad * 180 / Math.PI, latRad * 180 / Math.PI];
+    }
+
+    // Carrega poligonal_centro.geojson com correção automática de projeção
     fetch('poligonal_centro.geojson')
       .then(function(res) {
         if (!res.ok) return null;
@@ -482,14 +531,19 @@
         ];
 
         const aneisRecorte = [anelMundo];
+        const aneisParaEnquadrar = [];
 
         polyData.features.forEach(function(feat) {
           if (!feat.geometry) return;
           if (feat.geometry.type === 'Polygon') {
-            aneisRecorte.push(feat.geometry.coordinates[0]);
+            const anelConvertido = feat.geometry.coordinates[0].map(converterParaWGS84SeUTM);
+            aneisRecorte.push(anelConvertido);
+            aneisParaEnquadrar.push(anelConvertido);
           } else if (feat.geometry.type === 'MultiPolygon') {
             feat.geometry.coordinates.forEach(function(poly) {
-              aneisRecorte.push(poly[0]);
+              const anelConvertido = poly[0].map(converterParaWGS84SeUTM);
+              aneisRecorte.push(anelConvertido);
+              aneisParaEnquadrar.push(anelConvertido);
             });
           }
         });
@@ -514,9 +568,16 @@
           }
         }).addTo(map);
 
-        const limitesCentro = L.geoJSON(polyData).getBounds();
-        if (limitesCentro.isValid()) {
-          map.fitBounds(limitesCentro, { padding: [15, 15] });
+        // Enquadra exatamente na poligonal convertida (apenas se estiver dentro de Fortaleza)
+        if (aneisParaEnquadrar.length > 0) {
+          const limitesCentro = L.geoJSON({
+            type: "Feature",
+            geometry: { type: "Polygon", coordinates: aneisParaEnquadrar }
+          }).getBounds();
+
+          if (limitesCentro.isValid() && limitesCentro.getCenter().lat < -3 && limitesCentro.getCenter().lat > -4.5) {
+            map.fitBounds(limitesCentro, { padding: [20, 20] });
+          }
         }
 
         if (geojsonLayer) geojsonLayer.bringToFront();
