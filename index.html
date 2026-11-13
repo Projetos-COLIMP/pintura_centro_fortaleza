@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <style>
     :root {
-      /* Paleta Oficial COLIMP / Prefeitura de Fortaleza */
       --laranja: #F15A22;
       --verde: #009889;
       --azul: #00A0DC;
@@ -15,14 +14,10 @@
       --grafite: #414042;
       --creme: #FFE6CB;
       --branco: #FFFFFF;
-
-      /* Tons a 50% */
       --laranja-50: #F8AC90;
       --verde-50: #7FCBC4;
       --azul-50: #7FCFED;
       --petroleo-50: #98AAB2;
-
-      /* Tipografia e Espaçamento (múltiplos de 8) */
       --fonte: Arial, Helvetica, sans-serif;
       --e1: 8px;
       --e2: 16px;
@@ -30,7 +25,6 @@
       --e4: 48px;
     }
 
-    /* Regras Gerais: Arial, formas retas, sem cantos arredondados, sem sombra, sem degradê */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -49,7 +43,6 @@
       overflow: hidden;
     }
 
-    /* Cabeçalho Padrão Geral COLIMP (48px + bloco laranja 48px) */
     .topo {
       display: flex;
       align-items: center;
@@ -72,18 +65,21 @@
     }
     .topo__titulo {
       margin: 0 0 0 var(--e2);
-      font-size: 18px;
+      font-size: 17px;
       font-weight: bold;
       color: var(--branco);
-      letter-spacing: 0.3px;
     }
-    .topo__subtitulo {
+    .status-nuvem {
       margin-left: var(--e2);
+      padding: 4px 10px;
       font-size: 12px;
-      color: var(--creme);
+      font-weight: bold;
+      background: var(--verde);
+      color: var(--branco);
     }
+    .status-nuvem.sincronizando { background: var(--laranja); }
+    .status-nuvem.offline { background: var(--grafite); }
 
-    /* Seletor de Modo no Topo */
     .modos-container {
       display: flex;
       height: 100%;
@@ -94,26 +90,15 @@
       padding: 0 var(--e2);
       border: 0;
       border-left: 1px solid var(--petroleo-50);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
       cursor: pointer;
       background: var(--petroleo);
       color: var(--branco);
     }
-    .btn-modo:focus-visible {
-      outline: 3px solid var(--azul);
-      outline-offset: -3px;
-    }
-    .btn-modo.ativo-pintura {
-      background: var(--verde);
-      color: var(--branco);
-    }
-    .btn-modo.ativo-rota {
-      background: var(--laranja);
-      color: var(--branco);
-    }
+    .btn-modo.ativo-pintura { background: var(--verde); }
+    .btn-modo.ativo-rota { background: var(--laranja); }
 
-    /* Área de Painel Institucional (Fundo Creme + Cartões Brancos) */
     #painel {
       background: var(--creme);
       padding: var(--e1) var(--e2);
@@ -125,7 +110,6 @@
       flex-shrink: 0;
     }
 
-    /* Barra de Progresso e Indicadores de Gestão */
     .progresso-card {
       background: var(--branco);
       padding: var(--e1) var(--e2);
@@ -143,9 +127,7 @@
       color: var(--grafite);
       gap: var(--e1);
     }
-    .progresso-info strong {
-      color: var(--petroleo);
-    }
+    .progresso-info strong { color: var(--petroleo); }
     .badges-gestao {
       display: flex;
       flex-wrap: wrap;
@@ -173,7 +155,6 @@
       transition: width 0.25s ease;
     }
 
-    /* Linha de Cartões KPI e Controles */
     .linha-controles {
       display: flex;
       flex-wrap: wrap;
@@ -182,7 +163,6 @@
       gap: var(--e1);
     }
 
-    /* Cartões KPI com faixa lateral (Seção 4 do ID-VISUAL.md) */
     .kpis-grid {
       display: flex;
       flex-wrap: wrap;
@@ -192,11 +172,11 @@
       background: var(--branco);
       padding: 6px 12px;
       border-left: 6px solid var(--cor, var(--petroleo));
-      min-width: 105px;
+      min-width: 100px;
     }
     .kpi strong {
       display: block;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: bold;
       color: var(--petroleo);
       line-height: 1.2;
@@ -208,7 +188,6 @@
       text-transform: uppercase;
     }
 
-    /* Botões e Filtros (Seção 4 e 7 do ID-VISUAL.md) */
     .acoes {
       display: flex;
       flex-wrap: wrap;
@@ -218,7 +197,7 @@
 
     select, button.acao {
       height: 36px;
-      padding: 0 12px;
+      padding: 0 11px;
       border: 0;
       font-size: 13px;
       font-weight: bold;
@@ -229,54 +208,21 @@
       color: var(--petroleo);
       border: 2px solid var(--petroleo);
     }
-    select:focus-visible, button.acao:focus-visible {
-      outline: 3px solid var(--azul);
-    }
+    .btn-laranja { background: var(--laranja); color: var(--branco); }
+    .btn-laranja:hover { background: var(--petroleo); }
+    .btn-verde { background: var(--verde); color: var(--branco); }
+    .btn-verde:hover { background: var(--petroleo); }
+    .btn-azul { background: var(--azul); color: var(--branco); }
+    .btn-azul:hover { background: var(--petroleo); }
+    .btn-petroleo { background: var(--petroleo); color: var(--branco); }
+    .btn-petroleo:hover { background: var(--grafite); }
 
-    /* Botão Laranja Prioritário (Padrão Prefeitura) */
-    .btn-laranja {
-      background: var(--laranja);
-      color: var(--branco);
-    }
-    .btn-laranja:hover {
-      background: var(--petroleo);
-    }
-
-    /* Botão Verde (Meta / Concluir / Enviar) */
-    .btn-verde {
-      background: var(--verde);
-      color: var(--branco);
-    }
-    .btn-verde:hover {
-      background: var(--petroleo);
-    }
-
-    /* Botão Azul (Detalhes / Maps) */
-    .btn-azul {
-      background: var(--azul);
-      color: var(--branco);
-    }
-    .btn-azul:hover {
-      background: var(--petroleo);
-    }
-
-    /* Botão Azul-Petróleo (Secundário / Exportações) */
-    .btn-petroleo {
-      background: var(--petroleo);
-      color: var(--branco);
-    }
-    .btn-petroleo:hover {
-      background: var(--grafite);
-    }
-
-    /* Mapa */
     #map {
       flex: 1;
       width: 100%;
       background: var(--branco);
     }
 
-    /* Legenda Institucional */
     .legenda {
       background: var(--branco);
       padding: var(--e1) 12px;
@@ -303,7 +249,6 @@
       vertical-align: middle;
     }
 
-    /* Faixa de Rodapé Institucional COLIMP (8px, cinco blocos) */
     .faixa {
       display: grid;
       grid-template-columns: 2fr 5fr 1fr 3fr 6fr;
@@ -315,11 +260,11 @@
     .faixa i:nth-child(3) { background: var(--azul); }
 
     @media (max-width: 900px) {
-      .topo__subtitulo { display: none; }
-      .topo__titulo { font-size: 15px; margin-left: var(--e1); }
-      .btn-modo { padding: 0 10px; font-size: 12px; }
+      .topo__titulo { font-size: 14px; margin-left: var(--e1); }
+      .status-nuvem { font-size: 11px; padding: 3px 6px; margin-left: 6px; }
+      .btn-modo { padding: 0 8px; font-size: 11px; }
       #painel { padding: 6px var(--e1); gap: 6px; }
-      .kpi { min-width: 85px; padding: 4px 8px; }
+      .kpi { min-width: 82px; padding: 4px 8px; }
       .kpi strong { font-size: 15px; }
       select, button.acao { height: 32px; padding: 0 8px; font-size: 12px; }
     }
@@ -327,26 +272,24 @@
 </head>
 <body>
 
-  <!-- Cabeçalho Padrão Geral COLIMP -->
-  <header class="topo topo--geral">
+  <header class="topo">
     <div class="topo__esquerda">
       <span class="topo__bloco" aria-hidden="true"></span>
-      <h1 class="topo__titulo">PINTURA DE MEIO-FIO • CENTRO DE FORTALEZA</h1>
-      <span class="topo__subtitulo">COLIMP • Gestão Operacional de Campo</span>
+      <h1 class="topo__titulo">PINTURA DE MEIO-FIO • CENTRO</h1>
+      <span id="badge-nuvem" class="status-nuvem sincronizando">Conectando...</span>
     </div>
 
     <div class="modos-container">
       <button id="modo-pintura" class="btn-modo ativo-pintura" onclick="alterarModo('pintura')">
-        1. MARCAR RUA PINTADA
+        1. MARCAR PINTADA
       </button>
       <button id="modo-rota" class="btn-modo" onclick="alterarModo('rota')">
-        2. MONTAR ROTEIRO DO DIA
+        2. MONTAR ROTEIRO
       </button>
     </div>
   </header>
 
   <section id="painel">
-    <!-- Cartão de Progresso Geral (Meta atingida = Verde #009889) -->
     <div class="progresso-card">
       <div class="progresso-info">
         <span>PROGRESSO GERAL: <strong id="pct-progresso">0,0%</strong> (<span id="resumo-geral">0,00 km de 0,00 km</span>)</span>
@@ -362,7 +305,6 @@
     </div>
 
     <div class="linha-controles">
-      <!-- Cartões KPI com faixa lateral -->
       <div class="kpis-grid">
         <div class="kpi" style="--cor: var(--verde)">
           <strong id="qtd-pintadas">0</strong>
@@ -391,14 +333,13 @@
         </div>
       </div>
 
-      <!-- Controles Operacionais -->
       <div class="acoes">
-        <select id="multiplicador-lados" onchange="atualizarTudo()" aria-label="Quantidade de lados pintados">
+        <select id="multiplicador-lados" onchange="alterarLados()">
           <option value="2" selected>Pintar 2 Lados da Rua</option>
           <option value="1">Pintar Apenas 1 Lado</option>
         </select>
 
-        <select id="filtro-sentido" onchange="renderizarMapa()" aria-label="Filtrar vias no mapa">
+        <select id="filtro-sentido" onchange="renderizarMapa()">
           <option value="TODOS">Mostrar: Todas as Ruas</option>
           <option value="PENDENTES">Mostrar: Só Falta Pintar</option>
           <option value="PINTADAS">Mostrar: Só Já Pintadas</option>
@@ -406,14 +347,13 @@
           <option value="Horizontal">Mostrar: Só Horizontais</option>
         </select>
 
-        <button class="acao btn-azul" onclick="abrirGoogleMaps()">Ver Trajeto no Maps</button>
+        <button class="acao btn-azul" onclick="sincronizarDaNuvem(true)" title="Busca as últimas marcações feitas por outros gestores">Atualizar Agora</button>
+        <button class="acao btn-azul" onclick="abrirGoogleMaps()">Ver Trajeto Maps</button>
         <button class="acao btn-verde" onclick="enviarWhatsApp()">Enviar p/ Equipe</button>
         <button class="acao btn-laranja" onclick="converterRotaEmPintura()">Confirmar Roteiro Pintado</button>
         <button class="acao btn-petroleo" onclick="exportarCSV()">Baixar Excel</button>
         <button class="acao btn-petroleo" onclick="exportarGeoJSON()">Arquivo QGIS</button>
         <button class="acao btn-petroleo" onclick="exportarBackup()">Salvar Cópia</button>
-        <button class="acao btn-petroleo" onclick="document.getElementById('input-backup').click()">Abrir Cópia</button>
-        <input type="file" id="input-backup" accept=".json" style="display:none" onchange="importarBackup(event)" />
         <button class="acao btn-laranja" onclick="limparDados()">Zerar</button>
       </div>
     </div>
@@ -421,17 +361,20 @@
 
   <main id="map"></main>
 
-  <!-- Faixa de Rodapé Institucional COLIMP (8px, cinco blocos) -->
   <footer class="faixa" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
+    // =========================================================================
+    // COLE AQUI A URL DO SEU GOOGLE APPS SCRIPT (TERMINADA EM /exec)
+    // =========================================================================
+    const API_GOOGLE_URL = "https://script.google.com/macros/s/AKfycbzrI1h85NKmhV25gFQHGOzPfAPa4scLA-w6dVKiqvK5IBjx05FlvMX3eJvcQ9wcx8uH/exec";
+
     const COL_NOME = "name";
     const COL_METROS = "metros";
     const COL_SENTIDO = "Sentido";
     const STORAGE_KEY = "pintura_fortaleza_v3";
 
-    // Cores oficiais do ID-VISUAL.md
     const COR_LARANJA = "#F15A22";
     const COR_VERDE = "#009889";
     const COR_AZUL = "#00A0DC";
@@ -449,6 +392,7 @@
     let geojsonLayer = null;
     let pintadas = new Set();
     let roteiro = new Set();
+    let enviandoNuvem = false;
 
     function formatarBR(valor, casas) {
       return Number(valor).toLocaleString('pt-BR', {
@@ -457,27 +401,13 @@
       });
     }
 
-    function carregarEstadoLocal() {
-      const salvoV3 = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('pintura_fortaleza_v2');
-      if (salvoV3) {
-        try {
-          const parsed = JSON.parse(salvoV3);
-          pintadas = new Set(parsed.pintadas || []);
-          roteiro = new Set(parsed.roteiro || []);
-          if (parsed.lados) document.getElementById('multiplicador-lados').value = parsed.lados;
-          return;
-        } catch (e) {}
-      }
-      const salvoV1 = localStorage.getItem('pintura_fortaleza');
-      if (salvoV1) {
-        try {
-          pintadas = new Set(JSON.parse(salvoV1));
-          salvarProgresso();
-        } catch (e) {}
-      }
+    function atualizarStatusNuvem(texto, classe) {
+      const el = document.getElementById('badge-nuvem');
+      el.innerText = texto;
+      el.className = 'status-nuvem ' + (classe || '');
     }
 
-    function salvarProgresso() {
+    function salvarLocal() {
       const payload = {
         pintadas: Array.from(pintadas),
         roteiro: Array.from(roteiro),
@@ -487,7 +417,79 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     }
 
-    carregarEstadoLocal();
+    function carregarLocal() {
+      const salvo = localStorage.getItem(STORAGE_KEY);
+      if (!salvo) return;
+      try {
+        const parsed = JSON.parse(salvo);
+        pintadas = new Set(parsed.pintadas || []);
+        roteiro = new Set(parsed.roteiro || []);
+        if (parsed.lados) document.getElementById('multiplicador-lados').value = parsed.lados;
+      } catch (e) {}
+    }
+
+    // Envia alterações e registra histórico cronológico no Google Sheets
+    function enviarParaNuvem(eventosHistorico) {
+      salvarLocal();
+      if (!API_GOOGLE_URL || API_GOOGLE_URL.indexOf("http") !== 0) {
+        atualizarStatusNuvem("Salvo no Aparelho", "offline");
+        return;
+      }
+
+      enviandoNuvem = true;
+      atualizarStatusNuvem("Salvando online...", "sincronizando");
+
+      const payload = {
+        pintadas: Array.from(pintadas),
+        roteiro: Array.from(roteiro),
+        lados: document.getElementById('multiplicador-lados').value,
+        eventos: eventosHistorico || []
+      };
+
+      fetch(API_GOOGLE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        enviandoNuvem = false;
+        atualizarStatusNuvem("Online • Sincronizado (" + (data.atualizadoEm || "agora") + ")", "");
+      })
+      .catch(function() {
+        enviandoNuvem = false;
+        atualizarStatusNuvem("Sem internet (salvo local)", "offline");
+      });
+    }
+
+    // Busca o estado mais recente da nuvem (para gestores acompanhando ao vivo)
+    function sincronizarDaNuvem(mostrarAlerta) {
+      if (enviandoNuvem) return;
+      if (!API_GOOGLE_URL || API_GOOGLE_URL.indexOf("http") !== 0) {
+        atualizarStatusNuvem("Modo Local (Configure API)", "offline");
+        return;
+      }
+
+      atualizarStatusNuvem("Atualizando...", "sincronizando");
+
+      fetch(API_GOOGLE_URL)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          pintadas = new Set(data.pintadas || []);
+          roteiro = new Set(data.roteiro || []);
+          if (data.lados) document.getElementById('multiplicador-lados').value = data.lados;
+          salvarLocal();
+          renderizarMapa();
+          atualizarCalculosGlobais();
+          atualizarStatusNuvem("Online • Atualizado (" + (data.atualizadoEm || "agora") + ")", "");
+          if (mostrarAlerta) alert("Mapa atualizado com os dados mais recentes da equipe!");
+        })
+        .catch(function() {
+          atualizarStatusNuvem("Offline (usando cópia local)", "offline");
+        });
+    }
+
+    carregarLocal();
 
     fetch('vias.geojson')
       .then(function(res) {
@@ -501,6 +503,9 @@
         });
         renderizarMapa();
         atualizarCalculosGlobais();
+        sincronizarDaNuvem(false);
+        // Atualiza automaticamente a cada 25 segundos para outros gestores verem ao vivo
+        setInterval(function() { sincronizarDaNuvem(false); }, 25000);
       })
       .catch(function(err) {
         alert("Aviso: " + err.message);
@@ -512,9 +517,10 @@
       document.getElementById('modo-rota').className = 'btn-modo' + (novoModo === 'rota' ? ' ativo-rota' : '');
     }
 
-    function atualizarTudo() {
+    function alterarLados() {
       renderizarMapa();
       atualizarCalculosGlobais();
+      enviarParaNuvem([]);
     }
 
     function estiloVia(feature) {
@@ -523,15 +529,12 @@
       const estaPintada = pintadas.has(id);
       const sentido = feature.properties[COL_SENTIDO];
 
-      // Roteiro do dia em Azul-petróleo destacado
       if (estaNoRoteiro) {
         return { color: COR_PETROLEO, weight: 7, opacity: 1, dashArray: estaPintada ? '10, 6' : null };
       }
-      // Meta atingida / concluída sempre em Verde (#009889)
       if (estaPintada) {
         return { color: COR_VERDE, weight: 6, opacity: 0.95 };
       }
-      // Pendentes: Vertical em Azul (#00A0DC), Horizontal em Laranja (#F15A22)
       return {
         color: sentido === 'Vertical' ? COR_AZUL : COR_LARANJA,
         weight: 4,
@@ -576,16 +579,26 @@
 
           layer.on('click', function() {
             const id = feature._id;
+            const fatorAtual = Number(document.getElementById('multiplicador-lados').value);
+            const metrosCalc = Number(props[COL_METROS] || 0) * fatorAtual;
+            const eventos = [];
+
             if (modoAtual === 'pintura') {
-              if (pintadas.has(id)) pintadas.delete(id);
-              else pintadas.add(id);
+              if (pintadas.has(id)) {
+                pintadas.delete(id);
+                eventos.push({ acao: "Desmarcada", nome: nome, sentido: sentido, lados: fatorAtual, metros: metrosCalc });
+              } else {
+                pintadas.add(id);
+                eventos.push({ acao: "Pintada", nome: nome, sentido: sentido, lados: fatorAtual, metros: metrosCalc });
+              }
             } else {
               if (roteiro.has(id)) roteiro.delete(id);
               else roteiro.add(id);
             }
-            salvarProgresso();
+
             geojsonLayer.resetStyle(layer);
             atualizarCalculosGlobais();
+            enviarParaNuvem(eventos);
           });
         }
       }).addTo(map);
@@ -647,19 +660,35 @@
       document.getElementById('qtd-rota').innerText = roteiro.size;
       document.getElementById('total-rota-m').innerText = formatarBR(totalRotaM, 0) + ' m';
       document.getElementById('total-rota-km').innerText = formatarBR(totalRotaM / 1000, 3) + ' km';
-
-      salvarProgresso();
     }
 
     function converterRotaEmPintura() {
       if (roteiro.size === 0) return alert("Nenhuma rua selecionada no Roteiro do Dia.");
       if (!confirm("Confirmar que as " + roteiro.size + " ruas do roteiro já foram pintadas?")) return;
 
-      roteiro.forEach(function(id) { pintadas.add(id); });
+      const fatorAtual = Number(document.getElementById('multiplicador-lados').value);
+      const eventos = [];
+
+      roteiro.forEach(function(id) {
+        if (!pintadas.has(id)) {
+          pintadas.add(id);
+          const f = dadosOriginais.features[id];
+          if (f) {
+            eventos.push({
+              acao: "Pintada (Roteiro Concluído)",
+              nome: f.properties[COL_NOME] || 'Rua sem nome',
+              sentido: f.properties[COL_SENTIDO] || '-',
+              lados: fatorAtual,
+              metros: Number(f.properties[COL_METROS] || 0) * fatorAtual
+            });
+          }
+        }
+      });
+
       roteiro.clear();
-      salvarProgresso();
       renderizarMapa();
       atualizarCalculosGlobais();
+      enviarParaNuvem(eventos);
     }
 
     function obterTrajetoCompletoOrdenado() {
@@ -756,7 +785,7 @@
 
     function abrirGoogleMaps() {
       if (roteiro.size === 0) {
-        return alert("Clique primeiro no botão '2. MONTAR ROTEIRO DO DIA' e selecione as ruas no mapa.");
+        return alert("Clique primeiro no botão '2. MONTAR ROTEIRO' e selecione as ruas no mapa.");
       }
       const ordenados = obterTrajetoCompletoOrdenado();
       if (ordenados.length > 5) {
@@ -767,7 +796,7 @@
 
     function enviarWhatsApp() {
       if (roteiro.size === 0) {
-        return alert("Clique primeiro no botão '2. MONTAR ROTEIRO DO DIA' e selecione as ruas no mapa.");
+        return alert("Clique primeiro no botão '2. MONTAR ROTEIRO' e selecione as ruas no mapa.");
       }
       const fator = Number(document.getElementById('multiplicador-lados').value);
       const ordenados = obterTrajetoCompletoOrdenado();
@@ -836,44 +865,23 @@
       baixarArquivo(dados, 'copia_pintura_fortaleza_' + dataHoje() + '.json', "application/json");
     }
 
-    function importarBackup(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const parsed = JSON.parse(e.target.result);
-          if (!Array.isArray(parsed.pintadas)) throw new Error("Arquivo inválido.");
-          pintadas = new Set(parsed.pintadas);
-          roteiro = new Set(parsed.roteiro || []);
-          if (parsed.lados) document.getElementById('multiplicador-lados').value = parsed.lados;
-          salvarProgresso();
-          renderizarMapa();
-          atualizarCalculosGlobais();
-          alert("Cópia carregada com sucesso!");
-        } catch (err) {
-          alert("Erro ao ler arquivo: " + err.message);
-        }
-      };
-      reader.readAsText(file);
-    }
-
     function limparDados() {
       const opcao = prompt(
         "O que você deseja limpar?\nDigite 1 = Limpar APENAS o Roteiro do Dia\nDigite 2 = Zerar TUDO (apagar todas as ruas pintadas)"
       );
       if (opcao === '1') {
         roteiro.clear();
+        renderizarMapa();
+        atualizarCalculosGlobais();
+        enviarParaNuvem([]);
       } else if (opcao === '2') {
-        if (!confirm("Tem certeza que deseja apagar todo o progresso de ruas pintadas?")) return;
+        if (!confirm("Tem certeza que deseja apagar todo o progresso de ruas pintadas online?")) return;
         pintadas.clear();
         roteiro.clear();
-      } else {
-        return;
+        renderizarMapa();
+        atualizarCalculosGlobais();
+        enviarParaNuvem([{ acao: "Zerado Geral", nome: "Todas as vias", sentido: "-", lados: 2, metros: 0 }]);
       }
-      salvarProgresso();
-      renderizarMapa();
-      atualizarCalculosGlobais();
     }
 
     function baixarArquivo(conteudo, nomeArquivo, tipoMime) {
