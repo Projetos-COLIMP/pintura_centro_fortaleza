@@ -3,130 +3,353 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Controle de Pintura - Centro de Fortaleza</title>
+  <title>Controle de Pintura de Meio-Fio - COLIMP / Prefeitura de Fortaleza</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body { display: flex; flex-direction: column; height: 100vh; background: #0f172a; overflow: hidden; }
+    :root {
+      /* Paleta Oficial COLIMP / Prefeitura de Fortaleza */
+      --laranja: #F15A22;
+      --verde: #009889;
+      --azul: #00A0DC;
+      --petroleo: #325565;
+      --grafite: #414042;
+      --creme: #FFE6CB;
+      --branco: #FFFFFF;
 
-    #painel {
-      background: #1e293b; color: #f8fafc; padding: 10px 14px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.4); z-index: 1000;
-      display: flex; flex-direction: column; gap: 8px;
+      /* Tons a 50% */
+      --laranja-50: #F8AC90;
+      --verde-50: #7FCBC4;
+      --azul-50: #7FCFED;
+      --petroleo-50: #98AAB2;
+
+      /* Tipografia e Espaçamento (múltiplos de 8) */
+      --fonte: Arial, Helvetica, sans-serif;
+      --e1: 8px;
+      --e2: 16px;
+      --e3: 24px;
+      --e4: 48px;
     }
 
-    .linha-topo {
-      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;
+    /* Regras Gerais: Arial, formas retas, sem cantos arredondados, sem sombra, sem degradê */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      font-family: var(--fonte);
     }
 
-    .titulo h1 { font-size: 1.05rem; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
-    .titulo p { font-size: 0.78rem; color: #cbd5e1; }
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: var(--creme);
+      color: var(--grafite);
+      overflow: hidden;
+    }
 
+    /* Cabeçalho Padrão Geral COLIMP (48px + bloco laranja 48px) */
+    .topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: var(--e4);
+      background: var(--petroleo);
+      color: var(--branco);
+      flex-shrink: 0;
+    }
+    .topo__esquerda {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+    .topo__bloco {
+      width: var(--e4);
+      height: 100%;
+      background: var(--laranja);
+      flex-shrink: 0;
+    }
+    .topo__titulo {
+      margin: 0 0 0 var(--e2);
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--branco);
+      letter-spacing: 0.3px;
+    }
+    .topo__subtitulo {
+      margin-left: var(--e2);
+      font-size: 12px;
+      color: var(--creme);
+    }
+
+    /* Seletor de Modo no Topo */
     .modos-container {
-      display: flex; background: #0f172a; padding: 4px; border-radius: 8px; gap: 6px; border: 1px solid #334155;
+      display: flex;
+      height: 100%;
+      background: var(--petroleo);
     }
     .btn-modo {
-      padding: 7px 14px; border-radius: 6px; border: none; font-size: 0.82rem; font-weight: 600;
-      cursor: pointer; background: transparent; color: #94a3b8; transition: all 0.2s;
+      height: 100%;
+      padding: 0 var(--e2);
+      border: 0;
+      border-left: 1px solid var(--petroleo-50);
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--petroleo);
+      color: var(--branco);
     }
-    .btn-modo.ativo-pintura { background: #16a34a; color: white; }
-    .btn-modo.ativo-rota { background: #9333ea; color: white; }
+    .btn-modo:focus-visible {
+      outline: 3px solid var(--azul);
+      outline-offset: -3px;
+    }
+    .btn-modo.ativo-pintura {
+      background: var(--verde);
+      color: var(--branco);
+    }
+    .btn-modo.ativo-rota {
+      background: var(--laranja);
+      color: var(--branco);
+    }
+
+    /* Área de Painel Institucional (Fundo Creme + Cartões Brancos) */
+    #painel {
+      background: var(--creme);
+      padding: var(--e1) var(--e2);
+      border-bottom: 2px solid var(--petroleo);
+      display: flex;
+      flex-direction: column;
+      gap: var(--e1);
+      z-index: 1000;
+      flex-shrink: 0;
+    }
 
     /* Barra de Progresso e Indicadores de Gestão */
-    .progresso-wrapper {
-      background: #0f172a; padding: 8px 12px; border-radius: 8px; border: 1px solid #334155;
-      display: flex; flex-direction: column; gap: 6px;
+    .progresso-card {
+      background: var(--branco);
+      padding: var(--e1) var(--e2);
+      border-left: 6px solid var(--verde);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
     .progresso-info {
-      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-      font-size: 0.8rem; color: #f1f5f9; gap: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--grafite);
+      gap: var(--e1);
+    }
+    .progresso-info strong {
+      color: var(--petroleo);
     }
     .badges-gestao {
-      display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--e1);
+      font-size: 12px;
     }
     .badge {
-      background: #1e293b; padding: 3px 8px; border-radius: 5px; border: 1px solid #334155; color: #cbd5e1;
+      background: var(--creme);
+      padding: 2px 8px;
+      border-left: 3px solid var(--petroleo);
+      color: var(--grafite);
     }
-    .badge strong { color: #38bdf8; }
-    .badge.vert strong { color: #60a5fa; }
-    .badge.horiz strong { color: #fbbf24; }
+    .badge.vert { border-left-color: var(--azul); }
+    .badge.horiz { border-left-color: var(--laranja); }
 
     .progresso-barra-bg {
-      width: 100%; height: 9px; background: #334155; border-radius: 5px; overflow: hidden;
+      width: 100%;
+      height: 10px;
+      background: var(--petroleo-50);
     }
     .progresso-barra-fill {
-      height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #4ade80); transition: width 0.3s ease;
+      height: 100%;
+      width: 0%;
+      background: var(--verde);
+      transition: width 0.25s ease;
     }
 
+    /* Linha de Cartões KPI e Controles */
     .linha-controles {
-      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: var(--e1);
     }
 
-    .contadores {
-      display: flex; flex-wrap: wrap; gap: 10px; background: #0f172a; padding: 6px 12px;
-      border-radius: 8px; border: 1px solid #334155;
+    /* Cartões KPI com faixa lateral (Seção 4 do ID-VISUAL.md) */
+    .kpis-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--e1);
     }
-    .box-num { text-align: center; padding: 0 4px; }
-    .box-num span { display: block; font-size: 0.66rem; color: #94a3b8; text-transform: uppercase; }
-    .box-num strong { font-size: 0.92rem; }
-    .cor-pintura { color: #4ade80; }
-    .cor-rota { color: #c084fc; }
-    .divisor-box { width: 1px; background: #334155; }
+    .kpi {
+      background: var(--branco);
+      padding: 6px 12px;
+      border-left: 6px solid var(--cor, var(--petroleo));
+      min-width: 105px;
+    }
+    .kpi strong {
+      display: block;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--petroleo);
+      line-height: 1.2;
+    }
+    .kpi span {
+      display: block;
+      font-size: 11px;
+      color: var(--grafite);
+      text-transform: uppercase;
+    }
 
-    .acoes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    /* Botões e Filtros (Seção 4 e 7 do ID-VISUAL.md) */
+    .acoes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--e1);
+      align-items: center;
+    }
 
     select, button.acao {
-      padding: 7px 10px; border-radius: 6px; border: none; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      height: 36px;
+      padding: 0 12px;
+      border: 0;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
     }
-    select { background: #334155; color: white; border: 1px solid #475569; }
-    .btn-rota { background: #2563eb; color: white; }
-    .btn-rota:hover { background: #1d4ed8; }
-    .btn-zap { background: #16a34a; color: white; }
-    .btn-zap:hover { background: #15803d; }
-    .btn-concluir-rota { background: #7e22ce; color: white; }
-    .btn-concluir-rota:hover { background: #6b21a8; }
-    .btn-sec { background: #475569; color: white; }
-    .btn-sec:hover { background: #334155; }
-    .btn-limpar { background: #dc2626; color: white; }
+    select {
+      background: var(--branco);
+      color: var(--petroleo);
+      border: 2px solid var(--petroleo);
+    }
+    select:focus-visible, button.acao:focus-visible {
+      outline: 3px solid var(--azul);
+    }
 
-    #map { flex: 1; width: 100%; background: #e2e8f0; }
+    /* Botão Laranja Prioritário (Padrão Prefeitura) */
+    .btn-laranja {
+      background: var(--laranja);
+      color: var(--branco);
+    }
+    .btn-laranja:hover {
+      background: var(--petroleo);
+    }
+
+    /* Botão Verde (Meta / Concluir / Enviar) */
+    .btn-verde {
+      background: var(--verde);
+      color: var(--branco);
+    }
+    .btn-verde:hover {
+      background: var(--petroleo);
+    }
+
+    /* Botão Azul (Detalhes / Maps) */
+    .btn-azul {
+      background: var(--azul);
+      color: var(--branco);
+    }
+    .btn-azul:hover {
+      background: var(--petroleo);
+    }
+
+    /* Botão Azul-Petróleo (Secundário / Exportações) */
+    .btn-petroleo {
+      background: var(--petroleo);
+      color: var(--branco);
+    }
+    .btn-petroleo:hover {
+      background: var(--grafite);
+    }
+
+    /* Mapa */
+    #map {
+      flex: 1;
+      width: 100%;
+      background: var(--branco);
+    }
+
+    /* Legenda Institucional */
     .legenda {
-      background: rgba(255, 255, 255, 0.96); padding: 10px 12px; border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25); font-size: 0.78rem; line-height: 1.65; color: #1e293b;
+      background: var(--branco);
+      padding: var(--e1) 12px;
+      border-left: 6px solid var(--petroleo);
+      border-top: 1px solid var(--petroleo-50);
+      border-right: 1px solid var(--petroleo-50);
+      border-bottom: 1px solid var(--petroleo-50);
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--grafite);
     }
-    .cor { display: inline-block; width: 16px; height: 4px; margin-right: 6px; vertical-align: middle; border-radius: 2px; }
+    .legenda-titulo {
+      font-weight: bold;
+      color: var(--petroleo);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    .cor {
+      display: inline-block;
+      width: 18px;
+      height: 5px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
 
-    @media (max-width: 768px) {
-      .titulo p { display: none; }
-      #painel { padding: 8px 10px; gap: 6px; }
-      select, button.acao { padding: 6px 8px; font-size: 0.74rem; }
-      .divisor-box { display: none; }
+    /* Faixa de Rodapé Institucional COLIMP (8px, cinco blocos) */
+    .faixa {
+      display: grid;
+      grid-template-columns: 2fr 5fr 1fr 3fr 6fr;
+      height: 8px;
+      flex-shrink: 0;
+    }
+    .faixa i:nth-child(1), .faixa i:nth-child(5) { background: var(--verde); }
+    .faixa i:nth-child(2), .faixa i:nth-child(4) { background: var(--laranja); }
+    .faixa i:nth-child(3) { background: var(--azul); }
+
+    @media (max-width: 900px) {
+      .topo__subtitulo { display: none; }
+      .topo__titulo { font-size: 15px; margin-left: var(--e1); }
+      .btn-modo { padding: 0 10px; font-size: 12px; }
+      #painel { padding: 6px var(--e1); gap: 6px; }
+      .kpi { min-width: 85px; padding: 4px 8px; }
+      .kpi strong { font-size: 15px; }
+      select, button.acao { height: 32px; padding: 0 8px; font-size: 12px; }
     }
   </style>
 </head>
 <body>
 
-  <div id="painel">
-    <div class="linha-topo">
-      <div class="titulo">
-        <h1>🖌️ Pintura de Meio-Fio • Centro de Fortaleza</h1>
-        <p>Toque em uma rua no mapa para marcar como pintada ou adicionar ao roteiro</p>
-      </div>
-
-      <div class="modos-container">
-        <button id="modo-pintura" class="btn-modo ativo-pintura" onclick="alterarModo('pintura')">
-          ✅ 1. Marcar Rua Pintada
-        </button>
-        <button id="modo-rota" class="btn-modo" onclick="alterarModo('rota')">
-          📋 2. Montar Roteiro do Dia
-        </button>
-      </div>
+  <!-- Cabeçalho Padrão Geral COLIMP -->
+  <header class="topo topo--geral">
+    <div class="topo__esquerda">
+      <span class="topo__bloco" aria-hidden="true"></span>
+      <h1 class="topo__titulo">PINTURA DE MEIO-FIO • CENTRO DE FORTALEZA</h1>
+      <span class="topo__subtitulo">COLIMP • Gestão Operacional de Campo</span>
     </div>
 
-    <!-- Progresso Geral e por Tipo de Via -->
-    <div class="progresso-wrapper">
+    <div class="modos-container">
+      <button id="modo-pintura" class="btn-modo ativo-pintura" onclick="alterarModo('pintura')">
+        1. MARCAR RUA PINTADA
+      </button>
+      <button id="modo-rota" class="btn-modo" onclick="alterarModo('rota')">
+        2. MONTAR ROTEIRO DO DIA
+      </button>
+    </div>
+  </header>
+
+  <section id="painel">
+    <!-- Cartão de Progresso Geral (Meta atingida = Verde #009889) -->
+    <div class="progresso-card">
       <div class="progresso-info">
-        <span>Progresso Geral: <strong id="pct-progresso" style="color:#4ade80">0,0%</strong> (<span id="resumo-geral">0,00 km de 0,00 km</span>)</span>
+        <span>PROGRESSO GERAL: <strong id="pct-progresso">0,0%</strong> (<span id="resumo-geral">0,00 km de 0,00 km</span>)</span>
         <div class="badges-gestao">
           <span class="badge">Total de Ruas: <strong id="prog-ruas-total">0 / 0</strong></span>
           <span class="badge vert">Verticais: <strong id="prog-ruas-vert">0 / 0</strong></span>
@@ -139,66 +362,67 @@
     </div>
 
     <div class="linha-controles">
-      <!-- Contadores Claros -->
-      <div class="contadores">
-        <div class="box-num">
+      <!-- Cartões KPI com faixa lateral -->
+      <div class="kpis-grid">
+        <div class="kpi" style="--cor: var(--verde)">
+          <strong id="qtd-pintadas">0</strong>
           <span>Ruas Pintadas</span>
-          <strong class="cor-pintura" id="qtd-pintadas">0</strong>
         </div>
-        <div class="box-num">
+        <div class="kpi" style="--cor: var(--verde)">
+          <strong id="total-pintado-m">0 m</strong>
           <span>Metros Pintados</span>
-          <strong class="cor-pintura" id="total-pintado-m">0 m</strong>
         </div>
-        <div class="box-num">
+        <div class="kpi" style="--cor: var(--verde)">
+          <strong id="total-pintado-km">0,000 km</strong>
           <span>Km Pintados</span>
-          <strong class="cor-pintura" id="total-pintado-km">0,000 km</strong>
         </div>
 
-        <div class="divisor-box"></div>
-
-        <div class="box-num">
+        <div class="kpi" style="--cor: var(--petroleo)">
+          <strong id="qtd-rota">0</strong>
           <span>Ruas no Roteiro</span>
-          <strong class="cor-rota" id="qtd-rota">0</strong>
         </div>
-        <div class="box-num">
+        <div class="kpi" style="--cor: var(--petroleo)">
+          <strong id="total-rota-m">0 m</strong>
           <span>Metros Roteiro</span>
-          <strong class="cor-rota" id="total-rota-m">0 m</strong>
         </div>
-        <div class="box-num">
+        <div class="kpi" style="--cor: var(--petroleo)">
+          <strong id="total-rota-km">0,000 km</strong>
           <span>Km Roteiro</span>
-          <strong class="cor-rota" id="total-rota-km">0,000 km</strong>
         </div>
       </div>
 
-      <!-- Botões Simplificados -->
+      <!-- Controles Operacionais -->
       <div class="acoes">
-        <select id="multiplicador-lados" onchange="atualizarTudo()" title="Define se a pintura conta os 2 lados da rua ou apenas 1 lado">
+        <select id="multiplicador-lados" onchange="atualizarTudo()" aria-label="Quantidade de lados pintados">
           <option value="2" selected>Pintar 2 Lados da Rua</option>
           <option value="1">Pintar Apenas 1 Lado</option>
         </select>
 
-        <select id="filtro-sentido" onchange="renderizarMapa()">
+        <select id="filtro-sentido" onchange="renderizarMapa()" aria-label="Filtrar vias no mapa">
           <option value="TODOS">Mostrar: Todas as Ruas</option>
-          <option value="PENDENTES">Mostrar: Só Não Pintadas</option>
+          <option value="PENDENTES">Mostrar: Só Falta Pintar</option>
           <option value="PINTADAS">Mostrar: Só Já Pintadas</option>
           <option value="Vertical">Mostrar: Só Verticais</option>
           <option value="Horizontal">Mostrar: Só Horizontais</option>
         </select>
 
-        <button class="acao btn-rota" onclick="abrirGoogleMaps()" title="Abre o trajeto desenhado de ponta a ponta no Google Maps">🗺️ Ver Trajeto no Maps</button>
-        <button class="acao btn-zap" onclick="enviarWhatsApp()" title="Envia a lista de ruas e o link do trajeto no WhatsApp">📲 Enviar p/ Equipe</button>
-        <button class="acao btn-concluir-rota" onclick="converterRotaEmPintura()" title="Transforma todas as ruas do roteiro em pintadas">✔️ Confirmar Roteiro Pintado</button>
-        <button class="acao btn-sec" onclick="exportarCSV()">📊 Baixar Excel</button>
-        <button class="acao btn-sec" onclick="exportarGeoJSON()">🌍 Arquivo QGIS</button>
-        <button class="acao btn-sec" onclick="exportarBackup()">💾 Salvar Cópia</button>
-        <button class="acao btn-sec" onclick="document.getElementById('input-backup').click()">📂 Abrir Cópia</button>
+        <button class="acao btn-azul" onclick="abrirGoogleMaps()">Ver Trajeto no Maps</button>
+        <button class="acao btn-verde" onclick="enviarWhatsApp()">Enviar p/ Equipe</button>
+        <button class="acao btn-laranja" onclick="converterRotaEmPintura()">Confirmar Roteiro Pintado</button>
+        <button class="acao btn-petroleo" onclick="exportarCSV()">Baixar Excel</button>
+        <button class="acao btn-petroleo" onclick="exportarGeoJSON()">Arquivo QGIS</button>
+        <button class="acao btn-petroleo" onclick="exportarBackup()">Salvar Cópia</button>
+        <button class="acao btn-petroleo" onclick="document.getElementById('input-backup').click()">Abrir Cópia</button>
         <input type="file" id="input-backup" accept=".json" style="display:none" onchange="importarBackup(event)" />
-        <button class="acao btn-limpar" onclick="limparDados()">🗑️ Zerar</button>
+        <button class="acao btn-laranja" onclick="limparDados()">Zerar</button>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div id="map"></div>
+  <main id="map"></main>
+
+  <!-- Faixa de Rodapé Institucional COLIMP (8px, cinco blocos) -->
+  <footer class="faixa" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
@@ -207,10 +431,16 @@
     const COL_SENTIDO = "Sentido";
     const STORAGE_KEY = "pintura_fortaleza_v3";
 
+    // Cores oficiais do ID-VISUAL.md
+    const COR_LARANJA = "#F15A22";
+    const COR_VERDE = "#009889";
+    const COR_AZUL = "#00A0DC";
+    const COR_PETROLEO = "#325565";
+
     const map = L.map('map').setView([-3.7275, -38.5275], 15);
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
+      attribution: '&copy; OpenStreetMap • Prefeitura de Fortaleza / COLIMP',
       maxZoom: 19
     }).addTo(map);
 
@@ -293,14 +523,17 @@
       const estaPintada = pintadas.has(id);
       const sentido = feature.properties[COL_SENTIDO];
 
+      // Roteiro do dia em Azul-petróleo destacado
       if (estaNoRoteiro) {
-        return { color: '#9333ea', weight: 7, opacity: 0.95, dashArray: estaPintada ? '8, 6' : null };
+        return { color: COR_PETROLEO, weight: 7, opacity: 1, dashArray: estaPintada ? '10, 6' : null };
       }
+      // Meta atingida / concluída sempre em Verde (#009889)
       if (estaPintada) {
-        return { color: '#16a34a', weight: 6, opacity: 0.9 };
+        return { color: COR_VERDE, weight: 6, opacity: 0.95 };
       }
+      // Pendentes: Vertical em Azul (#00A0DC), Horizontal em Laranja (#F15A22)
       return {
-        color: sentido === 'Vertical' ? '#2563eb' : '#f59e0b',
+        color: sentido === 'Vertical' ? COR_AZUL : COR_LARANJA,
         weight: 4,
         opacity: 0.85
       };
@@ -330,12 +563,14 @@
 
           layer.bindTooltip(function() {
             const status = roteiro.has(feature._id)
-              ? '🟣 No Roteiro do Dia'
-              : (pintadas.has(feature._id) ? '🟢 Já Pintada' : '⚪ Falta Pintar');
+              ? 'NO ROTEIRO DO DIA'
+              : (pintadas.has(feature._id) ? 'JÁ PINTADA' : 'FALTA PINTAR');
             return (
-              '<b>' + nome + '</b><br>' +
-              'Extensão (' + fator + ' lado' + (fator > 1 ? 's' : '') + '): <b>' + formatarBR(m, 0) + ' m</b> (' + formatarBR(km, 3) + ' km)<br>' +
-              'Sentido: ' + sentido + ' • ' + status
+              '<div style="font-family:Arial,sans-serif; color:#414042;">' +
+              '<strong style="color:#325565; font-size:13px;">' + nome + '</strong><br>' +
+              'Extensão (' + fator + ' lado' + (fator > 1 ? 's' : '') + '): <strong>' + formatarBR(m, 0) + ' m</strong> (' + formatarBR(km, 3) + ' km)<br>' +
+              'Sentido: ' + sentido + ' • <strong>' + status + '</strong>' +
+              '</div>'
             );
           });
 
@@ -396,7 +631,6 @@
 
       const pct = totalPoligonalM > 0 ? ((totalPintadoM / totalPoligonalM) * 100) : 0;
 
-      // Barra de progresso e indicadores de gestão
       document.getElementById('pct-progresso').innerText = formatarBR(pct, 1) + '%';
       document.getElementById('resumo-geral').innerText =
         formatarBR(totalPintadoM / 1000, 2) + ' km de ' + formatarBR(totalPoligonalM / 1000, 2) + ' km';
@@ -406,12 +640,10 @@
       document.getElementById('prog-ruas-vert').innerText = pintadasVert + ' / ' + totalVert;
       document.getElementById('prog-ruas-horiz').innerText = pintadasHoriz + ' / ' + totalHoriz;
 
-      // Contadores de Pintura
       document.getElementById('qtd-pintadas').innerText = pintadas.size;
       document.getElementById('total-pintado-m').innerText = formatarBR(totalPintadoM, 0) + ' m';
       document.getElementById('total-pintado-km').innerText = formatarBR(totalPintadoM / 1000, 3) + ' km';
 
-      // Contadores de Roteiro
       document.getElementById('qtd-rota').innerText = roteiro.size;
       document.getElementById('total-rota-m').innerText = formatarBR(totalRotaM, 0) + ' m';
       document.getElementById('total-rota-km').innerText = formatarBR(totalRotaM / 1000, 3) + ' km';
@@ -430,7 +662,6 @@
       atualizarCalculosGlobais();
     }
 
-    // Extrai o ponto INICIAL e FINAL de cada via selecionada e ordena espacialmente
     function obterTrajetoCompletoOrdenado() {
       const trechos = [];
       roteiro.forEach(function(id) {
@@ -462,10 +693,9 @@
 
       if (trechos.length <= 1) return trechos;
 
-      // Ordena conectando o fim de uma rua ao início mais próximo da próxima rua
       const ordenados = [trechos.shift()];
       while (trechos.length > 0) {
-        const atual = ordenados[ordenados.length - 1];
+        const atual = ordenados[ordenadas.length - 1];
         let melhorIdx = 0;
         let menorDist = Infinity;
         let inverterProximo = false;
@@ -505,7 +735,6 @@
     }
 
     function gerarLinkGoogleMaps(trechosOrdenados) {
-      // Monta a lista de pontos: Início da Rua 1 -> Fim da Rua 1 -> Início da Rua 2 -> Fim da Rua 2...
       const pontos = [];
       trechosOrdenados.forEach(function(t) {
         if (pontos.length === 0 || pontos[pontos.length - 1] !== t.inicioStr) {
@@ -516,7 +745,6 @@
         }
       });
 
-      // Google Maps URL aceita até 10 pontos (1 destino + 9 paradas intermediárias)
       const limite = pontos.slice(0, 10);
       const destino = limite[limite.length - 1];
       const waypoints = limite.slice(0, -1).join('|');
@@ -528,18 +756,18 @@
 
     function abrirGoogleMaps() {
       if (roteiro.size === 0) {
-        return alert("Clique primeiro no botão '2. Montar Roteiro do Dia' e selecione as ruas no mapa.");
+        return alert("Clique primeiro no botão '2. MONTAR ROTEIRO DO DIA' e selecione as ruas no mapa.");
       }
       const ordenados = obterTrajetoCompletoOrdenado();
       if (ordenados.length > 5) {
-        alert("Nota: Como cada rua possui ponto de início e ponto de fim, o Google Maps desenhará o trajeto exato das primeiras 5 ruas selecionadas.");
+        alert("Nota: O Google Maps desenhará o trajeto exato (início e fim) das primeiras 5 ruas selecionadas.");
       }
       window.open(gerarLinkGoogleMaps(ordenados), '_blank');
     }
 
     function enviarWhatsApp() {
       if (roteiro.size === 0) {
-        return alert("Clique primeiro no botão '2. Montar Roteiro do Dia' e selecione as ruas no mapa.");
+        return alert("Clique primeiro no botão '2. MONTAR ROTEIRO DO DIA' e selecione as ruas no mapa.");
       }
       const fator = Number(document.getElementById('multiplicador-lados').value);
       const ordenados = obterTrajetoCompletoOrdenado();
@@ -555,7 +783,7 @@
 
       const linkMaps = gerarLinkGoogleMaps(ordenados);
       const texto =
-        '*ROTEIRO PINTURA DE MEIO-FIO • CENTRO*\n' +
+        '*ROTEIRO PINTURA DE MEIO-FIO • CENTRO (COLIMP)*\n' +
         'Total a Pintar (' + fator + ' lado' + (fator > 1 ? 's' : '') + '): ' + formatarBR(totalM, 0) + ' m (' + formatarBR(totalM / 1000, 2) + ' km)\n\n' +
         '*Ordem das Ruas (Início ao Fim):*\n' + linhasRuas.join('\n') + '\n\n' +
         '*Abrir Trajeto Desenhado no Mapa:*\n' + linkMaps;
@@ -563,7 +791,6 @@
       window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
     }
 
-    // Exporta planilha limpa com vírgula decimal (padrão Excel Brasil)
     function exportarCSV() {
       if (!dadosOriginais) return;
       const fator = Number(document.getElementById('multiplicador-lados').value);
@@ -669,10 +896,11 @@
     legenda.onAdd = function() {
       const div = L.DomUtil.create('div', 'legenda');
       div.innerHTML =
-        '<div><span class="cor" style="background:#2563eb"></span>Rua Vertical (Falta Pintar)</div>' +
-        '<div><span class="cor" style="background:#f59e0b"></span>Rua Horizontal (Falta Pintar)</div>' +
-        '<div><span class="cor" style="background:#16a34a; height:5px"></span>Rua Já Pintada</div>' +
-        '<div><span class="cor" style="background:#9333ea; height:6px"></span>Roteiro do Dia</div>';
+        '<div class="legenda-titulo">Legenda das Vias</div>' +
+        '<div><span class="cor" style="background:#00A0DC"></span>Vertical (Falta Pintar)</div>' +
+        '<div><span class="cor" style="background:#F15A22"></span>Horizontal (Falta Pintar)</div>' +
+        '<div><span class="cor" style="background:#009889; height:6px"></span>Já Pintada (Meta)</div>' +
+        '<div><span class="cor" style="background:#325565; height:7px"></span>Roteiro do Dia</div>';
       return div;
     };
     legenda.addTo(map);
