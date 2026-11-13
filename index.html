@@ -20,26 +20,39 @@
     }
 
     .titulo h1 { font-size: 1.05rem; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
-    .titulo p { font-size: 0.75rem; color: #94a3b8; }
+    .titulo p { font-size: 0.78rem; color: #cbd5e1; }
 
     .modos-container {
-      display: flex; background: #0f172a; padding: 4px; border-radius: 8px; gap: 4px; border: 1px solid #334155;
+      display: flex; background: #0f172a; padding: 4px; border-radius: 8px; gap: 6px; border: 1px solid #334155;
     }
     .btn-modo {
-      padding: 6px 12px; border-radius: 6px; border: none; font-size: 0.8rem; font-weight: 600;
+      padding: 7px 14px; border-radius: 6px; border: none; font-size: 0.82rem; font-weight: 600;
       cursor: pointer; background: transparent; color: #94a3b8; transition: all 0.2s;
     }
     .btn-modo.ativo-pintura { background: #16a34a; color: white; }
     .btn-modo.ativo-rota { background: #9333ea; color: white; }
 
+    /* Barra de Progresso e Indicadores de Gestão */
     .progresso-wrapper {
-      background: #0f172a; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155;
+      background: #0f172a; padding: 8px 12px; border-radius: 8px; border: 1px solid #334155;
+      display: flex; flex-direction: column; gap: 6px;
     }
     .progresso-info {
-      display: flex; justify-content: space-between; font-size: 0.75rem; color: #cbd5e1; margin-bottom: 4px;
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+      font-size: 0.8rem; color: #f1f5f9; gap: 8px;
     }
+    .badges-gestao {
+      display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.75rem;
+    }
+    .badge {
+      background: #1e293b; padding: 3px 8px; border-radius: 5px; border: 1px solid #334155; color: #cbd5e1;
+    }
+    .badge strong { color: #38bdf8; }
+    .badge.vert strong { color: #60a5fa; }
+    .badge.horiz strong { color: #fbbf24; }
+
     .progresso-barra-bg {
-      width: 100%; height: 8px; background: #334155; border-radius: 4px; overflow: hidden;
+      width: 100%; height: 9px; background: #334155; border-radius: 5px; overflow: hidden;
     }
     .progresso-barra-fill {
       height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #4ade80); transition: width 0.3s ease;
@@ -50,13 +63,15 @@
     }
 
     .contadores {
-      display: flex; gap: 12px; background: #0f172a; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155;
+      display: flex; flex-wrap: wrap; gap: 10px; background: #0f172a; padding: 6px 12px;
+      border-radius: 8px; border: 1px solid #334155;
     }
-    .box-num { text-align: center; }
-    .box-num span { display: block; font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; }
-    .box-num strong { font-size: 0.95rem; }
+    .box-num { text-align: center; padding: 0 4px; }
+    .box-num span { display: block; font-size: 0.66rem; color: #94a3b8; text-transform: uppercase; }
+    .box-num strong { font-size: 0.92rem; }
     .cor-pintura { color: #4ade80; }
     .cor-rota { color: #c084fc; }
+    .divisor-box { width: 1px; background: #334155; }
 
     .acoes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 
@@ -76,7 +91,7 @@
 
     #map { flex: 1; width: 100%; background: #e2e8f0; }
     .legenda {
-      background: rgba(255, 255, 255, 0.95); padding: 10px 12px; border-radius: 8px;
+      background: rgba(255, 255, 255, 0.96); padding: 10px 12px; border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.25); font-size: 0.78rem; line-height: 1.65; color: #1e293b;
     }
     .cor { display: inline-block; width: 16px; height: 4px; margin-right: 6px; vertical-align: middle; border-radius: 2px; }
@@ -85,6 +100,7 @@
       .titulo p { display: none; }
       #painel { padding: 8px 10px; gap: 6px; }
       select, button.acao { padding: 6px 8px; font-size: 0.74rem; }
+      .divisor-box { display: none; }
     }
   </style>
 </head>
@@ -93,24 +109,29 @@
   <div id="painel">
     <div class="linha-topo">
       <div class="titulo">
-        <h1>🖌️ Pintura de Meio-Fio • Centro</h1>
-        <p>Poligonal Centro de Fortaleza • Gestão de Campo</p>
+        <h1>🖌️ Pintura de Meio-Fio • Centro de Fortaleza</h1>
+        <p>Toque em uma rua no mapa para marcar como pintada ou adicionar ao roteiro</p>
       </div>
 
       <div class="modos-container">
         <button id="modo-pintura" class="btn-modo ativo-pintura" onclick="alterarModo('pintura')">
-          ✅ Registrar Pintura
+          ✅ 1. Marcar Rua Pintada
         </button>
         <button id="modo-rota" class="btn-modo" onclick="alterarModo('rota')">
-          🗺️ Montar Roteiro Garis
+          📋 2. Montar Roteiro do Dia
         </button>
       </div>
     </div>
 
+    <!-- Progresso Geral e por Tipo de Via -->
     <div class="progresso-wrapper">
       <div class="progresso-info">
-        <span>Progresso Geral do Centro: <strong id="pct-progresso">0.0%</strong></span>
-        <span id="resumo-geral">0 m / 0 m</span>
+        <span>Progresso Geral: <strong id="pct-progresso" style="color:#4ade80">0,0%</strong> (<span id="resumo-geral">0,00 km de 0,00 km</span>)</span>
+        <div class="badges-gestao">
+          <span class="badge">Total de Ruas: <strong id="prog-ruas-total">0 / 0</strong></span>
+          <span class="badge vert">Verticais: <strong id="prog-ruas-vert">0 / 0</strong></span>
+          <span class="badge horiz">Horizontais: <strong id="prog-ruas-horiz">0 / 0</strong></span>
+        </div>
       </div>
       <div class="progresso-barra-bg">
         <div id="barra-fill" class="progresso-barra-fill"></div>
@@ -118,48 +139,61 @@
     </div>
 
     <div class="linha-controles">
+      <!-- Contadores Claros -->
       <div class="contadores">
         <div class="box-num">
-          <span>Pintadas</span>
+          <span>Ruas Pintadas</span>
           <strong class="cor-pintura" id="qtd-pintadas">0</strong>
         </div>
         <div class="box-num">
-          <span>Total Pintado</span>
+          <span>Metros Pintados</span>
           <strong class="cor-pintura" id="total-pintado-m">0 m</strong>
         </div>
         <div class="box-num">
-          <span>No Roteiro</span>
+          <span>Km Pintados</span>
+          <strong class="cor-pintura" id="total-pintado-km">0,000 km</strong>
+        </div>
+
+        <div class="divisor-box"></div>
+
+        <div class="box-num">
+          <span>Ruas no Roteiro</span>
           <strong class="cor-rota" id="qtd-rota">0</strong>
         </div>
         <div class="box-num">
           <span>Metros Roteiro</span>
           <strong class="cor-rota" id="total-rota-m">0 m</strong>
         </div>
+        <div class="box-num">
+          <span>Km Roteiro</span>
+          <strong class="cor-rota" id="total-rota-km">0,000 km</strong>
+        </div>
       </div>
 
+      <!-- Botões Simplificados -->
       <div class="acoes">
-        <select id="multiplicador-lados" onchange="atualizarCalculosGlobais()" title="Pintura em 1 ou 2 lados do meio-fio">
-          <option value="1">1 Lado (1x)</option>
-          <option value="2">2 Lados (2x)</option>
+        <select id="multiplicador-lados" onchange="atualizarTudo()" title="Define se a pintura conta os 2 lados da rua ou apenas 1 lado">
+          <option value="2" selected>Pintar 2 Lados da Rua</option>
+          <option value="1">Pintar Apenas 1 Lado</option>
         </select>
 
         <select id="filtro-sentido" onchange="renderizarMapa()">
-          <option value="TODOS">Todas as Vias</option>
-          <option value="Vertical">Apenas Verticais</option>
-          <option value="Horizontal">Apenas Horizontais</option>
-          <option value="PENDENTES">Apenas Pendentes</option>
-          <option value="PINTADAS">Apenas Pintadas</option>
+          <option value="TODOS">Mostrar: Todas as Ruas</option>
+          <option value="PENDENTES">Mostrar: Só Não Pintadas</option>
+          <option value="PINTADAS">Mostrar: Só Já Pintadas</option>
+          <option value="Vertical">Mostrar: Só Verticais</option>
+          <option value="Horizontal">Mostrar: Só Horizontais</option>
         </select>
 
-        <button class="acao btn-rota" onclick="abrirGoogleMaps()">🗺️ Maps</button>
-        <button class="acao btn-zap" onclick="enviarWhatsApp()">📲 WhatsApp</button>
-        <button class="acao btn-concluir-rota" onclick="converterRotaEmPintura()">✔️ Concluir Rota</button>
-        <button class="acao btn-sec" onclick="exportarCSV()">📊 Excel/CSV</button>
-        <button class="acao btn-sec" onclick="exportarGeoJSON()">🌍 GeoJSON</button>
-        <button class="acao btn-sec" onclick="exportarBackup()">💾 Backup</button>
-        <button class="acao btn-sec" onclick="document.getElementById('input-backup').click()">📂 Restaurar</button>
+        <button class="acao btn-rota" onclick="abrirGoogleMaps()" title="Abre o trajeto desenhado de ponta a ponta no Google Maps">🗺️ Ver Trajeto no Maps</button>
+        <button class="acao btn-zap" onclick="enviarWhatsApp()" title="Envia a lista de ruas e o link do trajeto no WhatsApp">📲 Enviar p/ Equipe</button>
+        <button class="acao btn-concluir-rota" onclick="converterRotaEmPintura()" title="Transforma todas as ruas do roteiro em pintadas">✔️ Confirmar Roteiro Pintado</button>
+        <button class="acao btn-sec" onclick="exportarCSV()">📊 Baixar Excel</button>
+        <button class="acao btn-sec" onclick="exportarGeoJSON()">🌍 Arquivo QGIS</button>
+        <button class="acao btn-sec" onclick="exportarBackup()">💾 Salvar Cópia</button>
+        <button class="acao btn-sec" onclick="document.getElementById('input-backup').click()">📂 Abrir Cópia</button>
         <input type="file" id="input-backup" accept=".json" style="display:none" onchange="importarBackup(event)" />
-        <button class="acao btn-limpar" onclick="limparDados()">🗑️ Limpar</button>
+        <button class="acao btn-limpar" onclick="limparDados()">🗑️ Zerar</button>
       </div>
     </div>
   </div>
@@ -170,13 +204,11 @@
   <script>
     const COL_NOME = "name";
     const COL_METROS = "metros";
-    const COL_KM = "km";
     const COL_SENTIDO = "Sentido";
-    const STORAGE_KEY = "pintura_fortaleza_v2";
+    const STORAGE_KEY = "pintura_fortaleza_v3";
 
     const map = L.map('map').setView([-3.7275, -38.5275], 15);
 
-    // Mapa base gratuito e sem chave de API (OpenStreetMap)
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19
@@ -188,16 +220,23 @@
     let pintadas = new Set();
     let roteiro = new Set();
 
+    function formatarBR(valor, casas) {
+      return Number(valor).toLocaleString('pt-BR', {
+        minimumFractionDigits: casas,
+        maximumFractionDigits: casas
+      });
+    }
+
     function carregarEstadoLocal() {
-      const salvoV2 = localStorage.getItem(STORAGE_KEY);
-      if (salvoV2) {
+      const salvoV3 = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('pintura_fortaleza_v2');
+      if (salvoV3) {
         try {
-          const parsed = JSON.parse(salvoV2);
+          const parsed = JSON.parse(salvoV3);
           pintadas = new Set(parsed.pintadas || []);
           roteiro = new Set(parsed.roteiro || []);
           if (parsed.lados) document.getElementById('multiplicador-lados').value = parsed.lados;
           return;
-        } catch (e) { console.error("Erro ao ler storage v2:", e); }
+        } catch (e) {}
       }
       const salvoV1 = localStorage.getItem('pintura_fortaleza');
       if (salvoV1) {
@@ -222,7 +261,7 @@
 
     fetch('vias.geojson')
       .then(function(res) {
-        if (!res.ok) throw new Error("Arquivo vias.geojson não encontrado na raiz.");
+        if (!res.ok) throw new Error("Arquivo vias.geojson não encontrado.");
         return res.json();
       })
       .then(function(data) {
@@ -243,6 +282,11 @@
       document.getElementById('modo-rota').className = 'btn-modo' + (novoModo === 'rota' ? ' ativo-rota' : '');
     }
 
+    function atualizarTudo() {
+      renderizarMapa();
+      atualizarCalculosGlobais();
+    }
+
     function estiloVia(feature) {
       const id = feature._id;
       const estaNoRoteiro = roteiro.has(id);
@@ -258,7 +302,7 @@
       return {
         color: sentido === 'Vertical' ? '#2563eb' : '#f59e0b',
         weight: 4,
-        opacity: 0.8
+        opacity: 0.85
       };
     }
 
@@ -279,15 +323,20 @@
         style: estiloVia,
         onEachFeature: function(feature, layer) {
           const props = feature.properties;
-          const nome = props[COL_NOME] || 'Via sem nome';
-          const m = (Number(props[COL_METROS] || 0) * fator).toFixed(1);
+          const nome = props[COL_NOME] || 'Rua sem nome';
+          const m = Number(props[COL_METROS] || 0) * fator;
+          const km = m / 1000;
           const sentido = props[COL_SENTIDO] || '-';
 
           layer.bindTooltip(function() {
             const status = roteiro.has(feature._id)
               ? '🟣 No Roteiro do Dia'
-              : (pintadas.has(feature._id) ? '🟢 Pintura Concluída' : '⚪ Pendente');
-            return '<b>' + nome + '</b><br>' + m + ' m (' + fator + 'x) • ' + sentido + '<br><small>' + status + '</small>';
+              : (pintadas.has(feature._id) ? '🟢 Já Pintada' : '⚪ Falta Pintar');
+            return (
+              '<b>' + nome + '</b><br>' +
+              'Extensão (' + fator + ' lado' + (fator > 1 ? 's' : '') + '): <b>' + formatarBR(m, 0) + ' m</b> (' + formatarBR(km, 3) + ' km)<br>' +
+              'Sentido: ' + sentido + ' • ' + status
+            );
           });
 
           layer.on('click', function() {
@@ -315,34 +364,64 @@
       let totalPintadoM = 0;
       let totalRotaM = 0;
 
+      let totalVias = dadosOriginais.features.length;
+      let viasPintadasTotal = 0;
+
+      let totalVert = 0;
+      let pintadasVert = 0;
+
+      let totalHoriz = 0;
+      let pintadasHoriz = 0;
+
       dadosOriginais.features.forEach(function(f) {
         const m = Number(f.properties[COL_METROS] || 0) * fator;
+        const sentido = f.properties[COL_SENTIDO];
+        const foiPintada = pintadas.has(f._id);
+
         totalPoligonalM += m;
-        if (pintadas.has(f._id)) totalPintadoM += m;
+        if (foiPintada) {
+          totalPintadoM += m;
+          viasPintadasTotal++;
+        }
         if (roteiro.has(f._id)) totalRotaM += m;
+
+        if (sentido === 'Vertical') {
+          totalVert++;
+          if (foiPintada) pintadasVert++;
+        } else if (sentido === 'Horizontal') {
+          totalHoriz++;
+          if (foiPintada) pintadasHoriz++;
+        }
       });
 
       const pct = totalPoligonalM > 0 ? ((totalPintadoM / totalPoligonalM) * 100) : 0;
 
-      document.getElementById('pct-progresso').innerText = pct.toFixed(1) + '%';
+      // Barra de progresso e indicadores de gestão
+      document.getElementById('pct-progresso').innerText = formatarBR(pct, 1) + '%';
       document.getElementById('resumo-geral').innerText =
-        (totalPintadoM / 1000).toFixed(2) + ' km / ' + (totalPoligonalM / 1000).toFixed(2) + ' km';
+        formatarBR(totalPintadoM / 1000, 2) + ' km de ' + formatarBR(totalPoligonalM / 1000, 2) + ' km';
       document.getElementById('barra-fill').style.width = Math.min(pct, 100).toFixed(1) + '%';
 
-      document.getElementById('qtd-pintadas').innerText = pintadas.size;
-      document.getElementById('total-pintado-m').innerText =
-        totalPintadoM.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + ' m';
+      document.getElementById('prog-ruas-total').innerText = viasPintadasTotal + ' / ' + totalVias;
+      document.getElementById('prog-ruas-vert').innerText = pintadasVert + ' / ' + totalVert;
+      document.getElementById('prog-ruas-horiz').innerText = pintadasHoriz + ' / ' + totalHoriz;
 
+      // Contadores de Pintura
+      document.getElementById('qtd-pintadas').innerText = pintadas.size;
+      document.getElementById('total-pintado-m').innerText = formatarBR(totalPintadoM, 0) + ' m';
+      document.getElementById('total-pintado-km').innerText = formatarBR(totalPintadoM / 1000, 3) + ' km';
+
+      // Contadores de Roteiro
       document.getElementById('qtd-rota').innerText = roteiro.size;
-      document.getElementById('total-rota-m').innerText =
-        totalRotaM.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + ' m';
+      document.getElementById('total-rota-m').innerText = formatarBR(totalRotaM, 0) + ' m';
+      document.getElementById('total-rota-km').innerText = formatarBR(totalRotaM / 1000, 3) + ' km';
 
       salvarProgresso();
     }
 
     function converterRotaEmPintura() {
-      if (roteiro.size === 0) return alert("Nenhuma via selecionada no Roteiro do Dia.");
-      if (!confirm("Confirmar conclusão da pintura das " + roteiro.size + " vias do roteiro?")) return;
+      if (roteiro.size === 0) return alert("Nenhuma rua selecionada no Roteiro do Dia.");
+      if (!confirm("Confirmar que as " + roteiro.size + " ruas do roteiro já foram pintadas?")) return;
 
       roteiro.forEach(function(id) { pintadas.add(id); });
       roteiro.clear();
@@ -351,49 +430,97 @@
       atualizarCalculosGlobais();
     }
 
-    function obterViasRoteiroOrdenadas() {
-      const lista = [];
+    // Extrai o ponto INICIAL e FINAL de cada via selecionada e ordena espacialmente
+    function obterTrajetoCompletoOrdenado() {
+      const trechos = [];
       roteiro.forEach(function(id) {
         const f = dadosOriginais.features[id];
         if (!f) return;
-        const coords = f.geometry.type === 'MultiLineString'
-          ? f.geometry.coordinates[0]
-          : f.geometry.coordinates;
-        const meio = coords[Math.floor(coords.length / 2)];
-        lista.push({
+
+        let inicio, fim;
+        if (f.geometry.type === 'MultiLineString') {
+          const linhas = f.geometry.coordinates;
+          inicio = linhas[0][0];
+          const ultimaLinha = linhas[linhas.length - 1];
+          fim = ultimaLinha[ultimaLinha.length - 1];
+        } else {
+          const coords = f.geometry.coordinates;
+          inicio = coords[0];
+          fim = coords[coords.length - 1];
+        }
+
+        trechos.push({
           feature: f,
-          lat: meio[1],
-          lng: meio[0],
-          coordStr: meio[1].toFixed(6) + ',' + meio[0].toFixed(6)
+          inicioLat: inicio[1],
+          inicioLng: inicio[0],
+          fimLat: fim[1],
+          fimLng: fim[0],
+          inicioStr: inicio[1].toFixed(6) + ',' + inicio[0].toFixed(6),
+          fimStr: fim[1].toFixed(6) + ',' + fim[0].toFixed(6)
         });
       });
 
-      if (lista.length <= 2) return lista;
+      if (trechos.length <= 1) return trechos;
 
-      const ordenadas = [lista.shift()];
-      while (lista.length > 0) {
-        const atual = ordenadas[ordenadas.length - 1];
+      // Ordena conectando o fim de uma rua ao início mais próximo da próxima rua
+      const ordenados = [trechos.shift()];
+      while (trechos.length > 0) {
+        const atual = ordenados[ordenados.length - 1];
         let melhorIdx = 0;
         let menorDist = Infinity;
+        let inverterProximo = false;
 
-        for (let i = 0; i < lista.length; i++) {
-          const dLat = atual.lat - lista[i].lat;
-          const dLng = atual.lng - lista[i].lng;
-          const dist = dLat * dLat + dLng * dLng;
-          if (dist < menorDist) {
-            menorDist = dist;
+        for (let i = 0; i < trechos.length; i++) {
+          const cand = trechos[i];
+          const distDireta = Math.pow(atual.fimLat - cand.inicioLat, 2) + Math.pow(atual.fimLng - cand.inicioLng, 2);
+          const distInvertida = Math.pow(atual.fimLat - cand.fimLat, 2) + Math.pow(atual.fimLng - cand.fimLng, 2);
+
+          if (distDireta < menorDist) {
+            menorDist = distDireta;
             melhorIdx = i;
+            inverterProximo = false;
+          }
+          if (distInvertida < menorDist) {
+            menorDist = distInvertida;
+            melhorIdx = i;
+            inverterProximo = true;
           }
         }
-        ordenadas.push(lista.splice(melhorIdx, 1)[0]);
+
+        const escolhido = trechos.splice(melhorIdx, 1)[0];
+        if (inverterProximo) {
+          const tempStr = escolhido.inicioStr;
+          escolhido.inicioStr = escolhido.fimStr;
+          escolhido.fimStr = tempStr;
+          const tempLat = escolhido.inicioLat;
+          const tempLng = escolhido.inicioLng;
+          escolhido.inicioLat = escolhido.fimLat;
+          escolhido.inicioLng = escolhido.fimLng;
+          escolhido.fimLat = tempLat;
+          escolhido.fimLng = tempLng;
+        }
+        ordenados.push(escolhido);
       }
-      return ordenadas;
+      return ordenados;
     }
 
-    function gerarLinkGoogleMaps(viasOrdenadas) {
-      const limite = viasOrdenadas.slice(0, 10);
-      const destino = limite[limite.length - 1].coordStr;
-      const waypoints = limite.slice(0, -1).map(function(v) { return v.coordStr; }).join('|');
+    function gerarLinkGoogleMaps(trechosOrdenados) {
+      // Monta a lista de pontos: Início da Rua 1 -> Fim da Rua 1 -> Início da Rua 2 -> Fim da Rua 2...
+      const pontos = [];
+      trechosOrdenados.forEach(function(t) {
+        if (pontos.length === 0 || pontos[pontos.length - 1] !== t.inicioStr) {
+          pontos.push(t.inicioStr);
+        }
+        if (pontos[pontos.length - 1] !== t.fimStr) {
+          pontos.push(t.fimStr);
+        }
+      });
+
+      // Google Maps URL aceita até 10 pontos (1 destino + 9 paradas intermediárias)
+      const limite = pontos.slice(0, 10);
+      const destino = limite[limite.length - 1];
+      const waypoints = limite.slice(0, -1).join('|');
+
       let url = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(destino) + '&travelmode=walking';
       if (waypoints) url += '&waypoints=' + encodeURIComponent(waypoints);
       return url;
@@ -401,59 +528,62 @@
 
     function abrirGoogleMaps() {
       if (roteiro.size === 0) {
-        return alert("Selecione as ruas usando o modo 'Montar Roteiro Garis' primeiro.");
+        return alert("Clique primeiro no botão '2. Montar Roteiro do Dia' e selecione as ruas no mapa.");
       }
-      const ordenadas = obterViasRoteiroOrdenadas();
-      if (ordenadas.length > 10) {
-        alert("Aviso: O Google Maps limita rotas por link a 10 paradas. Serão enviadas as 10 primeiras vias sequenciadas.");
+      const ordenados = obterTrajetoCompletoOrdenado();
+      if (ordenados.length > 5) {
+        alert("Nota: Como cada rua possui ponto de início e ponto de fim, o Google Maps desenhará o trajeto exato das primeiras 5 ruas selecionadas.");
       }
-      window.open(gerarLinkGoogleMaps(ordenadas), '_blank');
+      window.open(gerarLinkGoogleMaps(ordenados), '_blank');
     }
 
     function enviarWhatsApp() {
       if (roteiro.size === 0) {
-        return alert("Selecione as ruas usando o modo 'Montar Roteiro Garis' primeiro.");
+        return alert("Clique primeiro no botão '2. Montar Roteiro do Dia' e selecione as ruas no mapa.");
       }
       const fator = Number(document.getElementById('multiplicador-lados').value);
-      const ordenadas = obterViasRoteiroOrdenadas();
+      const ordenados = obterTrajetoCompletoOrdenado();
       let totalM = 0;
 
-      const linhasRuas = ordenadas.map(function(item, index) {
+      const linhasRuas = ordenados.map(function(item, index) {
         const props = item.feature.properties;
         const nome = props[COL_NOME] || 'Trecho sem nome';
         const m = Number(props[COL_METROS] || 0) * fator;
         totalM += m;
-        return (index + 1) + '. ' + nome + ' (' + m.toFixed(0) + 'm)';
+        return (index + 1) + '. ' + nome + ' — ' + formatarBR(m, 0) + ' m (' + formatarBR(m / 1000, 2) + ' km)';
       });
 
-      const linkMaps = gerarLinkGoogleMaps(ordenadas);
+      const linkMaps = gerarLinkGoogleMaps(ordenados);
       const texto =
         '*ROTEIRO PINTURA DE MEIO-FIO • CENTRO*\n' +
-        'Lados: ' + fator + 'x | Total: ' + totalM.toFixed(0) + 'm (' + (totalM / 1000).toFixed(2) + ' km)\n\n' +
-        '*Sequência de Vias:*\n' + linhasRuas.join('\n') + '\n\n' +
-        '*Abrir Rota no Google Maps:*\n' + linkMaps;
+        'Total a Pintar (' + fator + ' lado' + (fator > 1 ? 's' : '') + '): ' + formatarBR(totalM, 0) + ' m (' + formatarBR(totalM / 1000, 2) + ' km)\n\n' +
+        '*Ordem das Ruas (Início ao Fim):*\n' + linhasRuas.join('\n') + '\n\n' +
+        '*Abrir Trajeto Desenhado no Mapa:*\n' + linkMaps;
 
       window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
     }
 
+    // Exporta planilha limpa com vírgula decimal (padrão Excel Brasil)
     function exportarCSV() {
       if (!dadosOriginais) return;
       const fator = Number(document.getElementById('multiplicador-lados').value);
-      const linhas = ["ID;Nome_Via;Sentido;Status;Metros_Eixo;Fator_Lados;Metros_Totais;Km_Totais"];
+      const linhas = ["Nome_da_Rua;Sentido;Situacao;Metros_Pintados;Quilometros_Km"];
 
       dadosOriginais.features.forEach(function(f) {
         const p = f.properties;
         const nome = (p[COL_NOME] || 'Sem nome').replace(/;/g, ',');
         const sentido = p[COL_SENTIDO] || '-';
-        const mBase = Number(p[COL_METROS] || 0);
-        const mTotal = mBase * fator;
+        const mTotal = Number(p[COL_METROS] || 0) * fator;
         const kmTotal = mTotal / 1000;
-        const status = pintadas.has(f._id) ? 'Pintada' : (roteiro.has(f._id) ? 'No Roteiro' : 'Pendente');
+        const status = pintadas.has(f._id) ? 'Pintada' : (roteiro.has(f._id) ? 'No Roteiro' : 'Falta Pintar');
 
-        linhas.push(f._id + ';"' + nome + '";' + sentido + ';' + status + ';' + mBase.toFixed(2) + ';' + fator + ';' + mTotal.toFixed(2) + ';' + kmTotal.toFixed(3));
+        const mFormatado = mTotal.toFixed(2).replace('.', ',');
+        const kmFormatado = kmTotal.toFixed(3).replace('.', ',');
+
+        linhas.push('"' + nome + '";' + sentido + ';' + status + ';' + mFormatado + ';' + kmFormatado);
       });
 
-      baixarArquivo("\uFEFF" + linhas.join("\n"), 'relatorio_pintura_centro_' + dataHoje() + '.csv', "text/csv;charset=utf-8;");
+      baixarArquivo("\uFEFF" + linhas.join("\n"), 'planilha_pintura_centro_' + dataHoje() + '.csv', "text/csv;charset=utf-8;");
     }
 
     function exportarGeoJSON() {
@@ -466,8 +596,9 @@
         delete f._id;
         const mBase = Number(f.properties[COL_METROS] || 0);
         f.properties.status_pintura = pintadas.has(id) ? 'Concluida' : (roteiro.has(id) ? 'Roteiro' : 'Pendente');
-        f.properties.fator_lados = fator;
-        f.properties.metros_calc = Number((mBase * fator).toFixed(2));
+        f.properties.lados = fator;
+        f.properties.metros_totais = Number((mBase * fator).toFixed(2));
+        f.properties.km_totais = Number(((mBase * fator) / 1000).toFixed(3));
       });
 
       baixarArquivo(JSON.stringify(copia, null, 2), 'vias_centro_atualizado_' + dataHoje() + '.geojson', "application/geo+json");
@@ -475,7 +606,7 @@
 
     function exportarBackup() {
       const dados = localStorage.getItem(STORAGE_KEY) || '{}';
-      baixarArquivo(dados, 'backup_pintura_fortaleza_' + dataHoje() + '.json', "application/json");
+      baixarArquivo(dados, 'copia_pintura_fortaleza_' + dataHoje() + '.json', "application/json");
     }
 
     function importarBackup(event) {
@@ -485,16 +616,16 @@
       reader.onload = function(e) {
         try {
           const parsed = JSON.parse(e.target.result);
-          if (!Array.isArray(parsed.pintadas)) throw new Error("Formato inválido.");
+          if (!Array.isArray(parsed.pintadas)) throw new Error("Arquivo inválido.");
           pintadas = new Set(parsed.pintadas);
           roteiro = new Set(parsed.roteiro || []);
           if (parsed.lados) document.getElementById('multiplicador-lados').value = parsed.lados;
           salvarProgresso();
           renderizarMapa();
           atualizarCalculosGlobais();
-          alert("Progresso restaurado com sucesso!");
+          alert("Cópia carregada com sucesso!");
         } catch (err) {
-          alert("Erro ao ler arquivo de backup: " + err.message);
+          alert("Erro ao ler arquivo: " + err.message);
         }
       };
       reader.readAsText(file);
@@ -502,12 +633,12 @@
 
     function limparDados() {
       const opcao = prompt(
-        "Digite:\n1 - Para limpar APENAS o Roteiro do Dia\n2 - Para zerar TODO o progresso (Pintadas + Roteiro)"
+        "O que você deseja limpar?\nDigite 1 = Limpar APENAS o Roteiro do Dia\nDigite 2 = Zerar TUDO (apagar todas as ruas pintadas)"
       );
       if (opcao === '1') {
         roteiro.clear();
       } else if (opcao === '2') {
-        if (!confirm("Tem certeza que deseja apagar todo o histórico de vias pintadas?")) return;
+        if (!confirm("Tem certeza que deseja apagar todo o progresso de ruas pintadas?")) return;
         pintadas.clear();
         roteiro.clear();
       } else {
@@ -538,9 +669,9 @@
     legenda.onAdd = function() {
       const div = L.DomUtil.create('div', 'legenda');
       div.innerHTML =
-        '<div><span class="cor" style="background:#2563eb"></span>Vertical (Pendente)</div>' +
-        '<div><span class="cor" style="background:#f59e0b"></span>Horizontal (Pendente)</div>' +
-        '<div><span class="cor" style="background:#16a34a; height:5px"></span>Pintura Concluída</div>' +
+        '<div><span class="cor" style="background:#2563eb"></span>Rua Vertical (Falta Pintar)</div>' +
+        '<div><span class="cor" style="background:#f59e0b"></span>Rua Horizontal (Falta Pintar)</div>' +
+        '<div><span class="cor" style="background:#16a34a; height:5px"></span>Rua Já Pintada</div>' +
         '<div><span class="cor" style="background:#9333ea; height:6px"></span>Roteiro do Dia</div>';
       return div;
     };
