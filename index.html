@@ -590,9 +590,10 @@
     </div>
 
     <div class="manual-abas">
-      <button id="aba-btn-campo" class="manual-aba ativa" onclick="trocarAbaManual('campo')">1. Marcar Pintura</button>
-      <button id="aba-btn-roteiro" class="manual-aba" onclick="trocarAbaManual('roteiro')">2. Roteiro Garis</button>
-      <button id="aba-btn-gestao" class="manual-aba" onclick="trocarAbaManual('gestao')">3. Excel e Online</button>
+      <button id="aba-btn-campo" class="manual-aba ativa" onclick="trocarAbaManual('campo')">1. Pintura</button>
+      <button id="aba-btn-roteiro" class="manual-aba" onclick="trocarAbaManual('roteiro')">2. Roteiro</button>
+      <button id="aba-btn-gestao" class="manual-aba" onclick="trocarAbaManual('gestao')">3. Online</button>
+      <button id="aba-btn-botoes" class="manual-aba" onclick="trocarAbaManual('botoes')">4. Botões</button>
     </div>
 
     <div class="manual-corpo">
@@ -637,11 +638,6 @@
             <span class="amostra-traco" style="background:#F15A22"></span>
             <span><strong>Laranja:</strong> Rua horizontal que ainda falta pintar.</span>
           </div>
-        </div>
-
-        <div class="manual-card" style="--cor-card: var(--azul)">
-          <h4>Dica de Visualização</h4>
-          <p>Use a caixa <strong>Fundo: Mapa Cinza Limpo</strong> para alternar entre o mapa cinza, o mapa colorido de ruas ou a <strong>Vista de Satélite</strong> (foto real).</p>
         </div>
       </div>
 
@@ -691,6 +687,39 @@
           <p style="margin-top:4px;">• <strong>Arquivo QGIS:</strong> Baixa o mapa atualizado para abrir direto no QGIS.</p>
         </div>
       </div>
+
+      <!-- ABA 4: EXPLICAÇÃO DE CADA BOTÃO -->
+      <div id="conteudo-aba-botoes" style="display:none; flex-direction:column; gap:8px;">
+        <div class="manual-card" style="--cor-card: var(--petroleo)">
+          <h4>1. Caixas de Seleção (Filtros)</h4>
+          <p><strong>[Fundo: Mapa Cinza Limpo]:</strong> Troca o visual do mapa entre Cinza Limpo, Mapa de Ruas colorido ou Vista de Satélite (foto real).</p>
+          <p style="margin-top:4px;"><strong>[Mostrar: Todas as Ruas]:</strong> Esconde ou mostra apenas o que você quer ver (ex: só o que falta pintar, só 1 lado, ou só o roteiro).</p>
+        </div>
+
+        <div class="manual-card" style="--cor-card: var(--azul)">
+          <h4>2. Botões Azuis (Mapa e Sincronização)</h4>
+          <p><strong>[Atualizar Agora]:</strong> Puxa na hora as últimas ruas que outros colegas marcaram no celular.</p>
+          <p style="margin-top:4px;"><strong>[Ver Trajeto Maps]:</strong> Abre o Google Maps desenhando o caminho de ponta a ponta das ruas do roteiro.</p>
+        </div>
+
+        <div class="manual-card" style="--cor-card: var(--verde)">
+          <h4>3. Botão Verde (Comunicação)</h4>
+          <p><strong>[Enviar p/ Equipe]:</strong> Abre o WhatsApp com a lista pronta das ruas do roteiro, a metragem e o link do mapa para mandar aos encarregados/garis.</p>
+        </div>
+
+        <div class="manual-card" style="--cor-card: var(--laranja)">
+          <h4>4. Botões Laranjas (Ações Críticas)</h4>
+          <p><strong>[Confirmar Roteiro Pintado]:</strong> Pega todas as ruas marcadas no roteiro do dia e transforma em concluídas (verdes) de uma só vez.</p>
+          <p style="margin-top:4px;"><strong>[Zerar]:</strong> Apaga apenas o roteiro do dia (opção 1) ou limpa todo o mapa para recomeçar do zero (opção 2).</p>
+        </div>
+
+        <div class="manual-card" style="--cor-card: var(--petroleo)">
+          <h4>5. Botões Azul-Petróleo (Exportação e Backup)</h4>
+          <p><strong>[Baixar Base Excel]:</strong> Baixa a planilha completa com metas, datas e quilometragem para relatórios.</p>
+          <p style="margin-top:4px;"><strong>[Arquivo QGIS]:</strong> Baixa o mapa georreferenciado atualizado.</p>
+          <p style="margin-top:4px;"><strong>[Salvar Cópia]:</strong> Guarda um arquivo de segurança no seu celular ou computador.</p>
+        </div>
+      </div>
     </div>
   </aside>
 
@@ -719,8 +748,8 @@
       janela.style.display = (janela.style.display === 'flex') ? 'none' : 'flex';
     }
 
-    function trocarAbaManual(aba) {
-      ['campo', 'roteiro', 'gestao'].forEach(function(nome) {
+   function trocarAbaManual(aba) {
+      ['campo', 'roteiro', 'gestao', 'botoes'].forEach(function(nome) {
         document.getElementById('conteudo-aba-' + nome).style.display = (nome === aba) ? 'flex' : 'none';
         document.getElementById('aba-btn-' + nome).className = 'manual-aba' + (nome === aba ? ' ativa' : '');
       });
