@@ -9,7 +9,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { display: flex; flex-direction: column; height: 100vh; background: #0f172a; overflow: hidden; }
 
-    /* Painel Superior */
     #painel {
       background: #1e293b; color: #f8fafc; padding: 10px 14px;
       box-shadow: 0 3px 10px rgba(0,0,0,0.4); z-index: 1000;
@@ -23,7 +22,6 @@
     .titulo h1 { font-size: 1.05rem; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
     .titulo p { font-size: 0.75rem; color: #94a3b8; }
 
-    /* Seletor de Modo Operacional */
     .modos-container {
       display: flex; background: #0f172a; padding: 4px; border-radius: 8px; gap: 4px; border: 1px solid #334155;
     }
@@ -34,7 +32,6 @@
     .btn-modo.ativo-pintura { background: #16a34a; color: white; }
     .btn-modo.ativo-rota { background: #9333ea; color: white; }
 
-    /* Barra de Progresso Geral */
     .progresso-wrapper {
       background: #0f172a; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155;
     }
@@ -48,7 +45,6 @@
       height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #4ade80); transition: width 0.3s ease;
     }
 
-    /* Contadores e Ações */
     .linha-controles {
       display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
     }
@@ -78,8 +74,7 @@
     .btn-sec:hover { background: #334155; }
     .btn-limpar { background: #dc2626; color: white; }
 
-    /* Mapa e Legenda */
-    #map { flex: 1; width: 100%; }
+    #map { flex: 1; width: 100%; background: #e2e8f0; }
     .legenda {
       background: rgba(255, 255, 255, 0.95); padding: 10px 12px; border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.25); font-size: 0.78rem; line-height: 1.65; color: #1e293b;
@@ -102,7 +97,6 @@
         <p>Poligonal Centro de Fortaleza • Gestão de Campo</p>
       </div>
 
-      <!-- Alternador de Modo -->
       <div class="modos-container">
         <button id="modo-pintura" class="btn-modo ativo-pintura" onclick="alterarModo('pintura')">
           ✅ Registrar Pintura
@@ -113,7 +107,6 @@
       </div>
     </div>
 
-    <!-- Barra de Progresso Geral da Poligonal -->
     <div class="progresso-wrapper">
       <div class="progresso-info">
         <span>Progresso Geral do Centro: <strong id="pct-progresso">0.0%</strong></span>
@@ -125,7 +118,6 @@
     </div>
 
     <div class="linha-controles">
-      <!-- Contadores Dinâmicos -->
       <div class="contadores">
         <div class="box-num">
           <span>Pintadas</span>
@@ -145,7 +137,6 @@
         </div>
       </div>
 
-      <!-- Filtros e Botões -->
       <div class="acoes">
         <select id="multiplicador-lados" onchange="atualizarCalculosGlobais()" title="Pintura em 1 ou 2 lados do meio-fio">
           <option value="1">1 Lado (1x)</option>
@@ -162,7 +153,7 @@
 
         <button class="acao btn-rota" onclick="abrirGoogleMaps()">🗺️ Maps</button>
         <button class="acao btn-zap" onclick="enviarWhatsApp()">📲 WhatsApp</button>
-        <button class="acao btn-concluir-rota" onclick="converterRotaEmPintura()" title="Marca todas as vias do roteiro atual como concluídas">✔️ Concluir Rota</button>
+        <button class="acao btn-concluir-rota" onclick="converterRotaEmPintura()">✔️ Concluir Rota</button>
         <button class="acao btn-sec" onclick="exportarCSV()">📊 Excel/CSV</button>
         <button class="acao btn-sec" onclick="exportarGeoJSON()">🌍 GeoJSON</button>
         <button class="acao btn-sec" onclick="exportarBackup()">💾 Backup</button>
@@ -177,28 +168,26 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
-    // Nomes das colunas exportadas do QGIS
     const COL_NOME = "name";
     const COL_METROS = "metros";
     const COL_KM = "km";
     const COL_SENTIDO = "Sentido";
     const STORAGE_KEY = "pintura_fortaleza_v2";
 
-    // Inicialização do Mapa
-    // Opção A: OpenStreetMap Oficial (sem chave, mostra nomes de ruas e comércios bem nítidos)
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors',
-  maxZoom: 19
-}).addTo(map);
+    const map = L.map('map').setView([-3.7275, -38.5275], 15);
 
-    // Estado da Aplicação
-    let modoAtual = 'pintura'; // 'pintura' ou 'rota'
+    // Mapa base gratuito e sem chave de API (OpenStreetMap)
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    let modoAtual = 'pintura';
     let dadosOriginais = null;
     let geojsonLayer = null;
-    let pintadas = new Set(); // IDs das vias já pintadas
-    let roteiro = new Set();  // IDs das vias planejadas no roteiro do dia
+    let pintadas = new Set();
+    let roteiro = new Set();
 
-    // Carregar estado salvo no navegador (com migração da v1 se existir)
     function carregarEstadoLocal() {
       const salvoV2 = localStorage.getItem(STORAGE_KEY);
       if (salvoV2) {
@@ -210,7 +199,6 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           return;
         } catch (e) { console.error("Erro ao ler storage v2:", e); }
       }
-      // Migração automática do formato antigo (pintura_fortaleza)
       const salvoV1 = localStorage.getItem('pintura_fortaleza');
       if (salvoV1) {
         try {
@@ -232,21 +220,22 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
     carregarEstadoLocal();
 
-    // Carregar GeoJSON
     fetch('vias.geojson')
-      .then(res => {
-        if (!res.ok) throw new Error("Arquivo vias.geojson não encontrado.");
+      .then(function(res) {
+        if (!res.ok) throw new Error("Arquivo vias.geojson não encontrado na raiz.");
         return res.json();
       })
-      .then(data => {
+      .then(function(data) {
         dadosOriginais = data;
-        data.features.forEach((f, idx) => {
+        data.features.forEach(function(f, idx) {
           f._id = idx;
         });
         renderizarMapa();
         atualizarCalculosGlobais();
       })
-      .catch(err => alert("Erro ao carregar vias.geojson: " + err.message));
+      .catch(function(err) {
+        alert("Aviso: " + err.message);
+      });
 
     function alterarModo(novoModo) {
       modoAtual = novoModo;
@@ -269,7 +258,7 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       return {
         color: sentido === 'Vertical' ? '#2563eb' : '#f59e0b',
         weight: 4,
-        opacity: 0.75
+        opacity: 0.8
       };
     }
 
@@ -281,27 +270,27 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       const fator = Number(document.getElementById('multiplicador-lados').value);
 
       geojsonLayer = L.geoJSON(dadosOriginais, {
-        filter: (feature) => {
+        filter: function(feature) {
           if (filtro === 'TODOS') return true;
           if (filtro === 'PENDENTES') return !pintadas.has(feature._id);
           if (filtro === 'PINTADAS') return pintadas.has(feature._id);
           return feature.properties[COL_SENTIDO] === filtro;
         },
         style: estiloVia,
-        onEachFeature: (feature, layer) => {
+        onEachFeature: function(feature, layer) {
           const props = feature.properties;
           const nome = props[COL_NOME] || 'Via sem nome';
           const m = (Number(props[COL_METROS] || 0) * fator).toFixed(1);
           const sentido = props[COL_SENTIDO] || '-';
 
-          layer.bindTooltip(() => {
+          layer.bindTooltip(function() {
             const status = roteiro.has(feature._id)
               ? '🟣 No Roteiro do Dia'
               : (pintadas.has(feature._id) ? '🟢 Pintura Concluída' : '⚪ Pendente');
-            return `<b>${nome}</b><br>${m} m (${fator}x) • ${sentido}<br><small>${status}</small>`;
+            return '<b>' + nome + '</b><br>' + m + ' m (' + fator + 'x) • ' + sentido + '<br><small>' + status + '</small>';
           });
 
-          layer.on('click', () => {
+          layer.on('click', function() {
             const id = feature._id;
             if (modoAtual === 'pintura') {
               if (pintadas.has(id)) pintadas.delete(id);
@@ -326,7 +315,7 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       let totalPintadoM = 0;
       let totalRotaM = 0;
 
-      dadosOriginais.features.forEach(f => {
+      dadosOriginais.features.forEach(function(f) {
         const m = Number(f.properties[COL_METROS] || 0) * fator;
         totalPoligonalM += m;
         if (pintadas.has(f._id)) totalPintadoM += m;
@@ -337,7 +326,7 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
       document.getElementById('pct-progresso').innerText = pct.toFixed(1) + '%';
       document.getElementById('resumo-geral').innerText =
-        `${(totalPintadoM / 1000).toFixed(2)} km / ${(totalPoligonalM / 1000).toFixed(2)} km`;
+        (totalPintadoM / 1000).toFixed(2) + ' km / ' + (totalPoligonalM / 1000).toFixed(2) + ' km';
       document.getElementById('barra-fill').style.width = Math.min(pct, 100).toFixed(1) + '%';
 
       document.getElementById('qtd-pintadas').innerText = pintadas.size;
@@ -353,19 +342,18 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
     function converterRotaEmPintura() {
       if (roteiro.size === 0) return alert("Nenhuma via selecionada no Roteiro do Dia.");
-      if (!confirm(`Confirmar conclusão da pintura das ${roteiro.size} vias do roteiro?`)) return;
+      if (!confirm("Confirmar conclusão da pintura das " + roteiro.size + " vias do roteiro?")) return;
 
-      roteiro.forEach(id => pintadas.add(id));
+      roteiro.forEach(function(id) { pintadas.add(id); });
       roteiro.clear();
       salvarProgresso();
       renderizarMapa();
       atualizarCalculosGlobais();
     }
 
-    // Extrai ponto médio e ordena espacialmente (Vizinho Mais Próximo) para evitar zigue-zague
     function obterViasRoteiroOrdenadas() {
       const lista = [];
-      roteiro.forEach(id => {
+      roteiro.forEach(function(id) {
         const f = dadosOriginais.features[id];
         if (!f) return;
         const coords = f.geometry.type === 'MultiLineString'
@@ -376,13 +364,12 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           feature: f,
           lat: meio[1],
           lng: meio[0],
-          coordStr: `${meio[1].toFixed(6)},${meio[0].toFixed(6)}`
+          coordStr: meio[1].toFixed(6) + ',' + meio[0].toFixed(6)
         });
       });
 
       if (lista.length <= 2) return lista;
 
-      // Algoritmo Nearest Neighbor partindo do primeiro item
       const ordenadas = [lista.shift()];
       while (lista.length > 0) {
         const atual = ordenadas[ordenadas.length - 1];
@@ -404,12 +391,11 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     }
 
     function gerarLinkGoogleMaps(viasOrdenadas) {
-      // Google Maps URL suporta até 10 pontos (1 destino + 9 waypoints)
       const limite = viasOrdenadas.slice(0, 10);
       const destino = limite[limite.length - 1].coordStr;
-      const waypoints = limite.slice(0, -1).map(v => v.coordStr).join('|');
-      let url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}&travelmode=walking`;
-      if (waypoints) url += `&waypoints=${encodeURIComponent(waypoints)}`;
+      const waypoints = limite.slice(0, -1).map(function(v) { return v.coordStr; }).join('|');
+      let url = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(destino) + '&travelmode=walking';
+      if (waypoints) url += '&waypoints=' + encodeURIComponent(waypoints);
       return url;
     }
 
@@ -432,31 +418,30 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       const ordenadas = obterViasRoteiroOrdenadas();
       let totalM = 0;
 
-      const linhasRuas = ordenadas.map((item, index) => {
+      const linhasRuas = ordenadas.map(function(item, index) {
         const props = item.feature.properties;
         const nome = props[COL_NOME] || 'Trecho sem nome';
         const m = Number(props[COL_METROS] || 0) * fator;
         totalM += m;
-        return `${index + 1}. ${nome} (${m.toFixed(0)}m)`;
+        return (index + 1) + '. ' + nome + ' (' + m.toFixed(0) + 'm)';
       });
 
       const linkMaps = gerarLinkGoogleMaps(ordenadas);
       const texto =
-        `*ROTEIRO PINTURA DE MEIO-FIO • CENTRO*\n` +
-        `Lados: ${fator}x | Total: ${totalM.toFixed(0)}m (${(totalM / 1000).toFixed(2)} km)\n\n` +
-        `*Sequência de Vias:*\n${linhasRuas.join('\n')}\n\n` +
-        `*Abrir Rota no Google Maps:*\n${linkMaps}`;
+        '*ROTEIRO PINTURA DE MEIO-FIO • CENTRO*\n' +
+        'Lados: ' + fator + 'x | Total: ' + totalM.toFixed(0) + 'm (' + (totalM / 1000).toFixed(2) + ' km)\n\n' +
+        '*Sequência de Vias:*\n' + linhasRuas.join('\n') + '\n\n' +
+        '*Abrir Rota no Google Maps:*\n' + linkMaps;
 
-      window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+      window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
     }
 
-    // Exportar Relatório CSV (compatível com Excel)
     function exportarCSV() {
       if (!dadosOriginais) return;
       const fator = Number(document.getElementById('multiplicador-lados').value);
       const linhas = ["ID;Nome_Via;Sentido;Status;Metros_Eixo;Fator_Lados;Metros_Totais;Km_Totais"];
 
-      dadosOriginais.features.forEach(f => {
+      dadosOriginais.features.forEach(function(f) {
         const p = f.properties;
         const nome = (p[COL_NOME] || 'Sem nome').replace(/;/g, ',');
         const sentido = p[COL_SENTIDO] || '-';
@@ -465,19 +450,18 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         const kmTotal = mTotal / 1000;
         const status = pintadas.has(f._id) ? 'Pintada' : (roteiro.has(f._id) ? 'No Roteiro' : 'Pendente');
 
-        linhas.push(`${f._id};"${nome}";${sentido};${status};${mBase.toFixed(2)};${fator};${mTotal.toFixed(2)};${kmTotal.toFixed(3)}`);
+        linhas.push(f._id + ';"' + nome + '";' + sentido + ';' + status + ';' + mBase.toFixed(2) + ';' + fator + ';' + mTotal.toFixed(2) + ';' + kmTotal.toFixed(3));
       });
 
-      baixarArquivo("\uFEFF" + linhas.join("\n"), `relatorio_pintura_centro_${dataHoje()}.csv`, "text/csv;charset=utf-8;");
+      baixarArquivo("\uFEFF" + linhas.join("\n"), 'relatorio_pintura_centro_' + dataHoje() + '.csv', "text/csv;charset=utf-8;");
     }
 
-    // Exportar GeoJSON atualizado para abrir no QGIS
     function exportarGeoJSON() {
       if (!dadosOriginais) return;
       const fator = Number(document.getElementById('multiplicador-lados').value);
       const copia = JSON.parse(JSON.stringify(dadosOriginais));
 
-      copia.features.forEach(f => {
+      copia.features.forEach(function(f) {
         const id = f._id;
         delete f._id;
         const mBase = Number(f.properties[COL_METROS] || 0);
@@ -486,20 +470,19 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         f.properties.metros_calc = Number((mBase * fator).toFixed(2));
       });
 
-      baixarArquivo(JSON.stringify(copia, null, 2), `vias_centro_atualizado_${dataHoje()}.geojson`, "application/geo+json");
+      baixarArquivo(JSON.stringify(copia, null, 2), 'vias_centro_atualizado_' + dataHoje() + '.geojson', "application/geo+json");
     }
 
-    // Backup e Restauração entre celulares
     function exportarBackup() {
       const dados = localStorage.getItem(STORAGE_KEY) || '{}';
-      baixarArquivo(dados, `backup_pintura_fortaleza_${dataHoje()}.json`, "application/json");
+      baixarArquivo(dados, 'backup_pintura_fortaleza_' + dataHoje() + '.json', "application/json");
     }
 
     function importarBackup(event) {
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = function(e) {
         try {
           const parsed = JSON.parse(e.target.result);
           if (!Array.isArray(parsed.pintadas)) throw new Error("Formato inválido.");
@@ -551,16 +534,14 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       return new Date().toISOString().slice(0, 10);
     }
 
-    // Legenda no canto inferior direito
     const legenda = L.control({ position: 'bottomright' });
-    legenda.onAdd = function () {
+    legenda.onAdd = function() {
       const div = L.DomUtil.create('div', 'legenda');
-      div.innerHTML = `
-        <div><span class="cor" style="background:#2563eb"></span>Vertical (Pendente)</div>
-        <div><span class="cor" style="background:#f59e0b"></span>Horizontal (Pendente)</div>
-        <div><span class="cor" style="background:#16a34a; height:5px"></span>Pintura Concluída</div>
-        <div><span class="cor" style="background:#9333ea; height:6px"></span>Roteiro do Dia</div>
-      `;
+      div.innerHTML =
+        '<div><span class="cor" style="background:#2563eb"></span>Vertical (Pendente)</div>' +
+        '<div><span class="cor" style="background:#f59e0b"></span>Horizontal (Pendente)</div>' +
+        '<div><span class="cor" style="background:#16a34a; height:5px"></span>Pintura Concluída</div>' +
+        '<div><span class="cor" style="background:#9333ea; height:6px"></span>Roteiro do Dia</div>';
       return div;
     };
     legenda.addTo(map);
